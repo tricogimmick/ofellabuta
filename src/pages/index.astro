@@ -1,16 +1,44 @@
 ---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import * as post from './posts/post-1.md';
+
+const pageTitle = "Top";
+const Content = post.Content;
 
 ---
+<BaseLayout pageTitle={pageTitle}>
+  <div class="article">
+    <h2>{post.frontmatter.title}</h2>
+    <div class="article-content">
+      <Content></Content>
+    </div>
+    <div class="article-info">
+      <div class="tags">
+        {post.frontmatter.tags.map((tag) => (
+          <span>{tag}</span>
+        ))}
+      </div>
+      <div>/ {post.frontmatter.createdAt.toString().slice(0,10)}</div>
+    </div>
+  </div>
+</BaseLayout>
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<style>
+  .article {
+    h2 {
+      text-align: center;
+    }
+    .article-info {
+      border-top: 1px solid gray;
+      display: flex;
+      justify-content: flex-end;
+      padding-top: 0.5em;
+      margin-bottom: 1em;
+      .tags {
+        span {
+          margin-right: 0.5em;
+        }
+      }
+    }
+  }
+</style>

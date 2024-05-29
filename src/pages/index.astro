@@ -1,46 +1,19 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getCollection, getEntry } from 'astro:content';
+import Article from '../components/Article.astro';
+import PageNavigater from '../components/PageNavigater.astro';
+
+import { getCollection } from 'astro:content';
 
 const pageTitle = "Top";
 
-const article = await getEntry('articles', 'article-0001');
-const { Content, headings } = await article.render();
+const articles = await getCollection('articles');
+const article = articles[articles.length - 1];
+const prev = articles.length > 2 ? articles[articles.length - 2] : null;
+const next = null;
 
 ---
 <BaseLayout pageTitle={pageTitle}>
-  <div class="article">
-    <h2>{article.data.title}</h2>
-    <div class="article-content">
-      <Content></Content>
-    </div>
-    <div class="article-info">
-      <div class="tags">
-        {
-          article.data.tags.map((x: string) => <span>{x}</span>)
-        }
-      </div>
-      <div>/ {article.data.createdAt.toDateString()}</div>
-    </div>
-  </div>
+  <Article article={article}></Article>
+  <PageNavigater prev={prev} next={next} path="./archives"></PageNavigater>
 </BaseLayout>
-
-<style>
-  .article {
-    h2 {
-      text-align: center;
-    }
-    .article-info {
-      border-top: 1px solid gray;
-      display: flex;
-      justify-content: flex-end;
-      padding-top: 0.5em;
-      margin-bottom: 1em;
-      .tags {
-        span {
-          margin-right: 0.5em;
-        }
-      }
-    }
-  }
-</style>

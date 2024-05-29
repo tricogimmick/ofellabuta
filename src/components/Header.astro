@@ -1,7 +1,14 @@
 ---
 ---
 <header>
-  <h1>ofellabuta</h1>  
+  <h1>ofellabuta</h1>
+  <script>
+    document.querySelector("header > h1")?.addEventListener("click", function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      document.location.href = "/";
+    })
+  </script>
 </header>
 
 <style>
@@ -9,6 +16,9 @@
     text-align: center;
     font-family: serif;
     font-style: bold;
-    font-size: 24px;
+    font-size: 48px;
+  }
+  h1:hover {
+    cursor: pointer;
   }
 </style>

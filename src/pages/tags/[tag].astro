@@ -1,11 +1,12 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
-  const allPosts = await Astro.glob('../posts/*.md');
-  const uniqueTags = [...new Set(allPosts.map((post) => post.frontmatter.tags).flat())];
+  const articles = await getCollection('articles');
+  const uniqueTags = [...new Set(articles.map((x) => x.data.tags).flat())];
   return uniqueTags.map((tag) => {
-    const filteredPosts = allPosts.filter((post) => post.frontmatter.tags.includes(tag));
+    const filteredPosts = articles.filter((x) => x.data.tags.includes(tag));
     return {
       params: { tag },
       props: { posts: filteredPosts },
@@ -17,8 +18,8 @@ const { tag } = Astro.params;
 const { posts } = Astro.props;
 ---
 <BaseLayout pageTitle={tag}>
-  <p>{tag}のタグが付いた記事</p>
+  <h2>Article tagged with {tag}</h2>
   <ul>
-    {posts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+    {posts.map((post) => <li><a href=`/archives/${post.slug}`>{post.data.title}</a></li>)}
   </ul>
 </BaseLayout>

@@ -1,0 +1,81 @@
+---
+import type { CollectionEntry } from 'astro:content';
+interface Props {
+    article: CollectionEntry<'articles'>;
+}
+const { article } = Astro.props;
+const { Content } = await article.render();
+
+---
+
+<div class="article">
+    <h2>{article.data.title}</h2>
+    <div class="created-at">{article.data.createdAt.toDateString()}</div>
+    <div class="article-content">
+      <Content></Content>
+    </div>
+    <div class="article-info">
+      <div class="tags">
+        {
+          article.data.tags.map((x: string) => <span><a href=`/tags/${x}`>{x}</a></span>)
+        }
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .article {
+      h2 {
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+      }
+      .created-at {
+        margin-top: -1em;
+        padding-right: 2em;
+        font-size: 80%;
+        text-align: right;
+      }
+      .article-content {
+        padding: 1em 0;
+        h3 {
+            padding: 0 2em;
+            font-size: 1.5em;
+            line-height: 1.5em;
+            font-family: serif;
+        }
+        blockquote {
+            font-family: serif;
+          border-left: 1px solid gray;
+          padding-left: 1em;
+        }
+      }
+      .article-info {
+        font-size: 80%;
+        padding-top: 1em;
+        margin-bottom: 1em;
+        .tags {
+            display: flex;
+            justify-content: flex-end;
+            span {
+                display: inline-block;
+                margin: 0 0.2em;
+                a {
+                    display: block;
+                    margin: 0;
+                    padding:  0.1em 1em;
+                    border: 1px solid #202040;
+                    text-decoration: none;
+                    font-weight: bold;
+                }
+                a:hover {
+                    color: darkred;
+                }
+                a:visited {
+                    color: #020240;
+                }
+            }
+        }
+      }
+    }
+  </style>

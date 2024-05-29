@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Article from '../../components/Article.astro';
+import PageNavigater from '../../components/PageNavigater.astro';
+
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const blogEntries = await getCollection('articles');
+  return blogEntries.map(entry => ({
+    params: { slug: entry.slug }, props: { article: entry }
+  }));
+}
+
+const pageTitle = "Archive";
+const { article } = Astro.props;
+
+const articles = await getCollection('articles');
+const prevArticles = articles.filter(x => x.slug < article.slug);
+const prev = prevArticles.length > 0 ? prevArticles?.reduce((a,b) => a.slug < b.slug ? b : a) : null;
+const nextArticles = articles.filter(x => x.slug > article.slug);
+const next = nextArticles.length > 0 ? nextArticles.reduce((a,b) => a.slug >= b.slug ? b : a) : null;
+
+---
+
+<BaseLayout pageTitle={pageTitle}>
+    <Article article={article}></Article>
+    <PageNavigater prev={prev} next={next} path="."></PageNavigater>
+</BaseLayout>
+  

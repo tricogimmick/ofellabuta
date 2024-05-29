@@ -1,0 +1,27 @@
+---
+import type { CollectionEntry } from 'astro:content';
+interface Props {
+    prev: CollectionEntry<'articles'>|null,
+    next: CollectionEntry<'articles'>|null,
+    path: string
+}
+const { prev, next, path } = Astro.props;
+
+---
+<div class="page-navi">
+    {prev && <div class="prev-navi"><a href=`${path}/${prev.slug}`>Previous</a></div>}
+    {next && <div class="next-navi"><a href=`${path}/${next.slug}`>Next</a></div>}
+</div>
+
+<style>
+    .page-navi {
+        display: flex;
+        margin-bottom: 1em;
+        > div {
+            margin: 0.5em;
+        }
+        > .next-navi {
+            margin-left: auto;
+        }
+    }
+</style>

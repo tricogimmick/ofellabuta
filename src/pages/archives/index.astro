@@ -14,7 +14,7 @@ const pageTitle = "Index";
         </thead>
         <tbody>
             {articles.map((article) => (
-                <tr><td><a href=`./${article.slug}`>{article.data.title}</a></td><td>{article.data.createdAt.toDateString()}</td></tr>
+                <tr><td><a href=`/archives/${article.slug}`>{article.data.title}</a></td><td>{article.data.createdAt.toDateString()}</td></tr>
               ))}                    
         </tbody>
     </table>

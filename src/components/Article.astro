@@ -17,7 +17,7 @@ const { Content } = await article.render();
     <div class="article-info">
       <div class="tags">
         {
-          article.data.tags.map((x: string) => <span><a href=`/tags/${x}`>{x}</a></span>)
+          article.data.tags.map((x: string) => <a href=`/tags/${x}`>{x}</a>)
         }
       </div>
     </div>
@@ -57,23 +57,20 @@ const { Content } = await article.render();
         .tags {
             display: flex;
             justify-content: flex-end;
-            span {
-                display: inline-block;
+            a {
+                display: block;
                 margin: 0 0.2em;
-                a {
-                    display: block;
-                    margin: 0;
-                    padding:  0.1em 1em;
-                    border: 1px solid #202040;
-                    text-decoration: none;
-                    font-weight: bold;
-                }
-                a:hover {
-                    color: darkred;
-                }
-                a:visited {
-                    color: #020240;
-                }
+                padding:  0.1em 1em;
+                border: 1px solid #202040;
+                text-decoration: none;
+                font-weight: bold;
+            }
+            a:hover {
+                color: darkred;
+                background-color: silver;
+            }
+            a:visited {
+                color: #020240;
             }
         }
       }

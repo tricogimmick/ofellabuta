@@ -3,7 +3,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import NavigationBar from '../components/NavigationBar.astro';
 import '../styles/global.css';
-const { pageTitle } = Astro.props;
+const { pageTitle, description } = Astro.props;
 ---
 <html lang="ja">
   <head>
@@ -11,6 +11,10 @@ const { pageTitle } = Astro.props;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content={pageTitle}>
+    <meta name="twitter:description" content={description}>
+    <meta name="twitter:image" content="/ofellabuta.png">    
     <title>ofellabuta - {pageTitle}</title>
   </head>
   <body>

@@ -13,7 +13,7 @@ const prev = articles.length > 2 ? articles[articles.length - 2] : null;
 const next = null;
 
 ---
-<BaseLayout pageTitle={pageTitle}>
+<BaseLayout pageTitle={pageTitle} title={article.data.title} description={article.data.description}>
   <Article article={article}></Article>
   <PageNavigater prev={prev} next={next}></PageNavigater>
 </BaseLayout>

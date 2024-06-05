@@ -14,7 +14,8 @@ const { pageTitle, title, description } = Astro.props;
     <meta name="twitter:card" content="summary">
     <meta property="og:title" content={title} />
     <meta property="og:type" content="artcle" />
-    <meta property="og:image" content="ttps://ofellabuta.com/ofellabuta.png" />
+    <meta property="og:url" content={"https://ofellabuta.com" + Astro.url.pathname}>
+    <meta property="og:image" content="https://ofellabuta.com/ofellabuta.png" />
     <meta property="og:site_name" content="ofellabuta" />
     <meta property="og:description" content={description} />
     <title>ofellabuta - {pageTitle}</title>

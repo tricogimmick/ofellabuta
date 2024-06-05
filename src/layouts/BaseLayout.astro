@@ -6,15 +6,17 @@ import '../styles/global.css';
 const { pageTitle, title, description } = Astro.props;
 ---
 <html lang="ja">
-  <head>
+  <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns/article#">
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content={title}>
-    <meta name="twitter:description" content={description}>
-    <meta name="twitter:image" content="https://ofellabuta.com/ofellabuta.png">    
+    <meta property="og:title" content={title} />
+    <meta property="og:type" content="artcle" />
+    <meta property="og:image" content="ttps://ofellabuta.com/ofellabuta.png" />
+    <meta property="og:site_name" content="ofellabuta" />
+    <meta property="og:description" content={description} />
     <title>ofellabuta - {pageTitle}</title>
   </head>
   <body>

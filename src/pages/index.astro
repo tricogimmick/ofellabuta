@@ -14,6 +14,39 @@ const next = null;
 
 ---
 <BaseLayout pageTitle={pageTitle} title={article.data.title} description={article.data.description}>
-  <Article article={article}></Article>
-  <PageNavigater prev={prev} next={next}></PageNavigater>
+  <div class="container">
+    <img src="https://i.gyazo.com/c42ecba652a06ff21364aab646f04bda.png" alt="ofellabuta" >
+  </div>
+  <div class="container">
+    <div class="last-update">
+        <h4>Last update</h4>
+        <div>
+          <a href=`/archives/${article.slug}`>{article.data.title}</a><br>
+          <span class="created-at">{article.data.createdAt.toDateString()}</span>
+        </div>
+    </div>
+  </div>
 </BaseLayout>
+
+<style>
+  .container {
+    display: flex;
+    justify-content: center;
+    img {
+      max-width: 450px;
+    }
+    > .last-update {
+      text-align: center;
+      > h4 {
+        margin: 0.5em;
+        padding: 0;
+      }
+      > div {
+        line-height: 1.5em;
+        .created-at {
+          font-size: 80%;
+        }
+      }
+    }
+  }
+</style>

@@ -18,8 +18,35 @@ const { tag } = Astro.params;
 const { posts } = Astro.props;
 ---
 <BaseLayout pageTitle={tag}>
-  <h2>Article tagged with {tag}</h2>
-  <ul>
-    {posts.map((post) => <li><a href=`/archives/${post.slug}`>{post.data.title}</a></li>)}
-  </ul>
+  <h2>Article tagged with "{tag}"</h2>
+  <table>
+    <thead>
+        <tr><th>Title</th><th>Created at</th></tr>
+    </thead>
+    <tbody>
+        {posts.map((article) => (
+            <tr><td><a href=`/archives/${article.slug}`>{article.data.title}</a></td><td>{article.data.createdAt.toDateString()}</td></tr>
+          ))}                    
+    </tbody>
+</table>
 </BaseLayout>
+
+<style>
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 80%;
+        tbody tr {
+            border-bottom: 1px solid gray;
+        }
+        th, td {
+            padding: 0.5em;
+        }
+    }
+    th:last-child {
+        width: 200px;
+    }
+    td:last-child {
+        text-align: center;
+    }
+</style>

@@ -23,4 +23,39 @@ body > nav {
 img {
   width: 100%;
 }
-  
+
+table {
+  font-size: 80%;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table > thead > tr > th {
+  padding: 0.2em 0.5em;
+  text-align: center;
+  font-weight: bold;
+  vertical-align: text-top;
+  border-bottom: 1px solid #020240;
+} 
+
+table > tbody > tr > td {
+  padding: 0.2em 0.5em;
+  vertical-align: top;
+} 
+
+table > tbody > tr:nth-child(even) {
+  background-color: #e0e0e0;
+}
+
+.book-list {
+  margin-bottom: 2em;
+}
+.book-list > table > tbody > tr > td:nth-child(1) {
+  width: 45%;
+} 
+.book-list > table > tbody > tr > td:nth-child(2) {
+  width: 40%;
+} 
+.book-list > table > tbody > tr > td:nth-child(3) {
+  width: auto;
+} 

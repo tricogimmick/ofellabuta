@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { magazineData } from '../../../scripts/lib.ts'
+
+
+---
+<BaseLayout pageTitle="Bibliograpohic Data">
+    <h2>Comic Magazine Data</h2>
+    {
+        magazineData.map((mag) => (
+            <div class="magazine">
+                <a href={`./${mag.key}`}>{mag.title}</a>
+            </div>
+        ))  
+    }
+</BaseLayout>
+
+<style>
+  </style>

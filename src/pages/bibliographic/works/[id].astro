@@ -2,7 +2,10 @@
 import type { GetStaticPaths } from "astro";
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import sqlite3 from 'sqlite3';
+import { marked } from 'marked';
+
 import type { WorkType } from '../../../types/work';
+import type { RelatedLinksType } from "../../../types/relatedLinks";
 
 
 type ParamsType = {
@@ -89,6 +92,21 @@ function getFirstPublished(db: sqlite3.Database, workId: number) {
     });
 }
 
+function getRelatedLinks(db: sqlite3.Database, workId: number) {
+    return new Promise<RelatedLinksType[]>((ok, ng) => {
+        db.all<RelatedLinksType>(
+            "SELECT * FROM related_links WHERE relatedType = 'WORK' AND relatedId = ?",
+            [workId],
+            (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows || []);
+                }
+            });
+    });
+}
+
 function getPrints(db: sqlite3.Database, workId: number) {
     return new Promise<PrintType[]>((ok, ng) => {
         db.all<PrintType>(
@@ -117,9 +135,15 @@ const dbPath = import.meta.env.BIBLIODB_PATH;
 const db = new sqlite3.Database(dbPath);
 const authors = await getAuthors(db, id);
 const firstPublished = await getFirstPublished(db, id);
+const links = await getRelatedLinks(db, id);
 const prints = await getPrints(db, id);
 
 const title = work.title ?? "Unknown";
+const descHtml = marked.parse(work.description);
+const synopsisHtml = marked.parse(work.synopsis);
+const noteHtml = marked.parse(work.note);
+
+const relatedLinks = links.filter(x => x.linkType === 'LINK');
 
 ---
 <BaseLayout pageTitle={title}>
@@ -143,13 +167,23 @@ const title = work.title ?? "Unknown";
                     }
                     <tr><th>発表年</th><td>{work.publicationYear ?? "??"}年{ work.publicationEndYear != null ? ` 〜 ${work.publicationEndYear}年` : "" }</td></tr>
                     {
+                        work.synopsis != null && work.synopsis != "" ?
+                        <tr><th>あらすじ</th><td><Fragment set:html={synopsisHtml} /></td></tr> : null
+                    }
+                    {
                         work.description != null && work.description != "" ?
-                        <tr><th>解説</th><td>{work.description}</td></tr> : null
+                        <tr><th>解説</th><td><Fragment set:html={descHtml} /></td></tr> : null
                     }
                     {
                         work.note != null && work.note != "" ?
-                        <tr><th>付記</th><td>{work.note}</td></tr> : null
+                        <tr><th>付記</th><td><Fragment set:html={noteHtml} /></td></tr> : null
                     }
+                    {
+                        relatedLinks.length > 0 ?
+                        <tr><th>リンク</th><td><Fragment set:html={relatedLinks.map(l => `<a href="${l.url}">${l.alt}</a>`).join("<br>")}/></td></tr> :
+                        null
+                    }    
+                    
                 </tbody>
             </table>
         </div>
@@ -201,6 +235,9 @@ const title = work.title ?? "Unknown";
                     width: 400px;
                     vertical-align: top;
                     padding: 0;
+                    > p:first-child {
+                        margin-top: 0;
+                    }
                 }             
                 > tbody > tr:nth-child(even) {
                     background-color: unset

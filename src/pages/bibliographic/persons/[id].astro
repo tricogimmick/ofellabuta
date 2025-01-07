@@ -1,7 +1,10 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import sqlite3 from 'sqlite3';
+import { marked } from 'marked';
+
 import type { PersonType } from '../../../types/person';
+import type { RelatedLinksType } from "../../../types/relatedLinks";
 
 type ParamsType = {
     id: number;
@@ -58,6 +61,21 @@ function getWorks(db: sqlite3.Database, personId: number) {
     });
 }
 
+function getRelatedLinks(db: sqlite3.Database, personId: number) {
+    return new Promise<RelatedLinksType[]>((ok, ng) => {
+        db.all<RelatedLinksType>(
+            "SELECT * FROM related_links WHERE relatedType = 'PERSON' AND relatedId = ?",
+            [personId],
+            (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows || []);
+                }
+            });
+    });
+}
+
 
 const { id } = Astro.params;
 const { person } = Astro.props;
@@ -65,17 +83,34 @@ const { person } = Astro.props;
 const dbPath = import.meta.env.BIBLIODB_PATH;
 const db = new sqlite3.Database(dbPath);
 const works = await getWorks(db, id);
+const links = await getRelatedLinks(db, id);
+
+const portraitImage = links.find(x => x.linkType === 'IMG' && x.alt === '肖像');
+const relatedLinks = links.filter(x => x.linkType === 'LINK');
+
+const descHtml = marked.parse(person.description);
 
 ---
 <BaseLayout pageTitle={person.name}>
     <h2>{person.name}{ person.kana != null && person.kana != "" ? <span class="kana">({person.kana})</span> : null }</h2>
     <div class="person">
         <div class="person-info">
+            {
+                portraitImage ?
+                <div class="portrait-image"><img src={portraitImage.url} /></div> :
+                null
+            }
+
             <table>
                 <tbody>
                     { person.born ? <tr><th>生年月日</th><td>{person.born}</td></tr> : null }
                     { person.died ? <tr><th>没年月日</th><td>{person.died}</td></tr> : null }
-                    { person.description ? <tr><th>解説</th><td>{person.description}</td></tr> : null }
+                    { person.description ? <tr><th>解説</th><td><Fragment set:html={descHtml} /></td></tr> : null }
+                    {
+                        relatedLinks.length > 0 ?
+                        <tr><th>リンク</th><td><Fragment set:html={relatedLinks.map(l => `<a href="${l.url}">${l.alt}</a>`).join("<br>")}/></td></tr> :
+                        null
+                    }    
                 </tbody>
             </table>
         </div>
@@ -114,7 +149,12 @@ const works = await getWorks(db, id);
     }
     .person {
         .person-info {
-            table {
+            display: flex;
+            gap: 1em;
+            > .portrait-image > img {
+                height: 200px;
+            }
+            > table {
                 font-size: 12px;
                 border-collapse: collapse;
                 width: unset;
@@ -122,13 +162,19 @@ const works = await getWorks(db, id);
                     font-weight: normal;
                     text-align: left;
                     vertical-align: top;
-                    width: 100px;
+                    width: 80px;
                     padding: 0;
                 }
                 td {
                     width: 400px;
                     vertical-align: top;
                     padding: 0;
+                    > p:first-child {
+                        margin-top: 0;
+                    }
+                    > p:last-child {
+                        margin-bottom: 0;
+                    }
                 }             
                 > tbody > tr:nth-child(even) {
                     background-color: unset

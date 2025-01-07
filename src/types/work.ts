@@ -5,6 +5,7 @@ export type WorkType = {
     variantTitles: string;
     originalTitle: string;
     contentType: string;
+    synopsis: string;
     description: string;
     note: string;
     publicationYear: number | null;

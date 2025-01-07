@@ -22,6 +22,14 @@ type WorkType = {
     publicationYear: number;
     contentType: string;
 }
+type PrintType = {
+    id: number;
+    printType: string;
+    seriesTitle: string;
+    title: string;
+    publisher: string;
+    publicationDate: string;
+}
 
 export async function getStaticPaths() {
     const dbPath = import.meta.env.BIBLIODB_PATH;
@@ -61,6 +69,26 @@ function getWorks(db: sqlite3.Database, personId: number) {
     });
 }
 
+function getPrints(db: sqlite3.Database, personId: number) {
+    return new Promise<PrintType[]>((ok, ng) => {
+        db.all<PrintType>(
+            "SELECT p.id, p.printType, s.title as seriesTitle, p.title, pub.name as publisher, p.publicationDate " +
+            "FROM prints as p " +
+            "LEFT JOIN related_persons as rp ON rp.relatedType = 'PRINT' AND rp.relatedId = p.id " +
+            "LEFT JOIN series as s ON p.seriesId = s.id " +
+            "LEFT JOIN publishers as pub ON p.publisherId = pub.id " +
+            "WHERE rp.personId = ? ORDER BY p.publicationDate", 
+            [personId], 
+            (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows || []);
+                }
+            });
+    });
+}
+
 function getRelatedLinks(db: sqlite3.Database, personId: number) {
     return new Promise<RelatedLinksType[]>((ok, ng) => {
         db.all<RelatedLinksType>(
@@ -83,6 +111,7 @@ const { person } = Astro.props;
 const dbPath = import.meta.env.BIBLIODB_PATH;
 const db = new sqlite3.Database(dbPath);
 const works = await getWorks(db, id);
+const prints = await getPrints(db, id);
 const links = await getRelatedLinks(db, id);
 
 const portraitImage = links.find(x => x.linkType === 'IMG' && x.alt === '肖像');
@@ -114,8 +143,12 @@ const descHtml = person.description != null && person.description != "" ? marked
                 </tbody>
             </table>
         </div>
+        <div class="tab">
+            <button id="works-tab" class="selected">作品リスト</button>
+            <button id="prints-tab">書籍リスト</button>
+            <span>&nbsp;</span>
+        </div>
         <div class="container works">
-            <h4>作品リスト</h4>
             <div class="container-header">
                 <div class="container-row">
                     <div class="container-cell">No</div>
@@ -137,7 +170,60 @@ const descHtml = person.description != null && person.description != "" ? marked
                 }
             </div>
         </div>
+        <div class="container prints" style="display: none;">
+            <div class="container-header">
+                <div class="container-row">
+                    <div class="container-cell">No</div>
+                    <div class="container-cell">タイトル</div>
+                    <div class="container-cell">出版社</div>
+                    <div class="container-cell">発行日</div>
+                    <div class="container-cell">種別</div>
+                </div>
+            </div>
+            <div class="contaner-body">
+                {
+                    prints.map((print, idx) => (
+                        <div class={`container-row ${idx % 2 == 0 ? "even" : "odd"}`}>
+                            <div class="container-cell">{idx + 1}</div>
+                            <div class="container-cell">
+                                <a href={`/bibliographic/prints/${print.id}`}>{ (print.seriesTitle ?? "") != "" ? `${print.seriesTitle} ${print.title}` : print.title }</a>
+                            </div>
+                            <div class="container-cell">{print.publicationDate}</div>
+                            <div class="container-cell">{print.printType}</div>
+                        </div>
+                    ))
+                }
+            </div>
+        </div>
     </div>
+    <script>
+        function openTab(tabName: string) {
+            console.log(`openTab: ${tabName}`);
+            const wokrs = document.querySelector('.container.works') as HTMLElement;
+            const prints = document.querySelector('.container.prints') as HTMLElement;
+            if (tabName === 'works') {
+                if (wokrs != null) { 
+                    wokrs.style.display = 'block';
+                    document.getElementById("works-tab")?.classList.add("selected");
+                }
+                if (prints != null) {
+                    prints.style.display = 'none';
+                    document.getElementById("prints-tab")?.classList.remove("selected");
+                }
+            } else {
+                if (wokrs != null) { 
+                    wokrs.style.display = 'none';
+                    document.getElementById("works-tab")?.classList.remove("selected");
+                }
+                if (prints != null) {
+                    prints.style.display = 'block';
+                    document.getElementById("prints-tab")?.classList.add("selected");
+                }
+            }
+        }
+        document.getElementById('works-tab')?.addEventListener('click', () => openTab('works'));
+        document.getElementById('prints-tab')?.addEventListener('click', () => openTab('prints'));
+    </script>
 </BaseLayout>
 
 <style>
@@ -182,7 +268,32 @@ const descHtml = person.description != null && person.description != "" ? marked
 
             }
         }
+        .tab {
+            margin-top: 2em;
+            display: flex;
+            > button {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0.5em 1em;
+                width: 10em;
+                background-color: #e0e0e0;
+                border: 1px solid gray;
+            }
+            > button:first-child {
+                border-right: none;
+            }
+            > button.selected {
+                border-bottom: none;
+                background-color: #eeeeee;
+            }
+            > span {
+                display: block;
+                flex-grow: 1;
+                border-bottom: 1px solid gray;
+            }
+        }
         .container {
+            margin-top: 1em;
             padding: 0;
             font-size: 12px;
             .container-header {

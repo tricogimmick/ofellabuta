@@ -1,9 +1,12 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import sqlite3 from 'sqlite3';
+import { marked } from 'marked';
+
 import BreadcrumbList, { type BreadcrumbListType } from '../../../components/BreadcrumbList.astro';
 import { magazineData } from '../../../scripts/lib.ts'
 import type { SeriesType } from '../../../types/series';
+import type { PublisherType } from '../../../types/publisher';
 
 type ParamsType = {
     id: number;
@@ -45,6 +48,18 @@ export async function getStaticPaths() {
     });
 }
 
+function getPublisher(db: sqlite3.Database, publisherId: number) {
+    return new Promise<PublisherType>((ok, ng) => {
+        db.get<PublisherType>("SELECT * FROM publishers WHERE id = ?", [publisherId], (err, row) => {
+            if (err) {
+                ng(err);
+            } else {
+                ok(row);
+            }
+        });
+    });
+}
+
 function getIssues(db: sqlite3.Database, seriesId: number) {
     return new Promise<IssueType[]>((ok, ng) => {
         db.all<IssueType>(
@@ -68,6 +83,7 @@ const { series } = Astro.props;
 
 const dbPath = import.meta.env.BIBLIODB_PATH;
 const db = new sqlite3.Database(dbPath);
+const publisher = series.publisherId != null ? await getPublisher(db, series.publisherId as number) : null;
 const issues = await getIssues(db, id); 
 let years = null;
 
@@ -80,10 +96,23 @@ if (magazineData.find(x => x.id == series.id)) {
   years = issues.reduce((acc, issue) => acc.includes(String(issue.issueNumber).substring(0,4)) ? acc : [...acc, String(issue.issueNumber).substring(0,4)], [] as string[]);
 }
 
+const descHtml = series.description != null && series.description != "" ? marked.parse(series.description) : "";
+
 ---
 <BaseLayout pageTitle={series.title}>
   <BreadcrumbList {breadcrumbList} />
   <h2>{series.title}</h2>
+  <div class="series-info">
+    <table>
+      <tbody>
+        <tr><th>出版社：</th><td>{publisher?.name}</td></tr>
+        {
+          series.description != null && series.description != "" ?
+          <tr><th>備　考：</th><td><Fragment set:html={descHtml} /></td></tr> : null
+        }
+      </tbody>
+    </table>
+  </div>
   {
     years ?
     years.reverse().map( y => (
@@ -117,35 +146,61 @@ if (magazineData.find(x => x.id == series.id)) {
 </BaseLayout>
 
 <style>
-    .issues {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px 10px;
-        .issue {
-          > a {
-            text-decoration: none;
+  .series-info {
+    margin-bottom: 1em;
+    table {
+      font-size: 12px;
+      border-collapse: collapse;
+      width: unset;
+      th {
+          font-weight: normal;
+          text-align: left;
+          vertical-align: top;
+          width: 50px;
+          padding: 0;
+      }
+      td {
+          width: 400px;
+          vertical-align: top;
+          padding: 0;
+          > p:first-child {
+              margin-top: 0;
           }
-            img {
-                width: 150px;
-                height: 214px;
-            }
-            .no-image {
-                display: grid;
-                width: 150px;
-                height: 214px;
-                border: 1px solid gray;
-                background-color: silver;
-                place-items: center;
-                margin-bottom: 0.5em;
-                font-size: 12px;
-                font-weight: bold;
-
-            }
-            .title {
-                font-size: 12px;
-                line-height: 12px;
-                text-align: center;
-            }
-        }
+      }             
+      > tbody > tr:nth-child(even) {
+          background-color: unset
+      }
     }
- </style>
+  }
+  .issues {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 10px;
+      .issue {
+        > a {
+          text-decoration: none;
+        }
+          img {
+              width: 150px;
+              height: 214px;
+          }
+          .no-image {
+              display: grid;
+              width: 150px;
+              height: 214px;
+              border: 1px solid gray;
+              background-color: silver;
+              place-items: center;
+              margin-bottom: 0.5em;
+              font-size: 12px;
+              font-weight: bold;
+
+          }
+          .title {
+              font-size: 12px;
+              line-height: 12px;
+              text-align: center;
+          }
+      }
+  }
+</style>

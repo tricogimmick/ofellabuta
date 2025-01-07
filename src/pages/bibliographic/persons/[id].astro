@@ -132,12 +132,12 @@ const descHtml = person.description != null && person.description != "" ? marked
 
             <table>
                 <tbody>
-                    { person.born ? <tr><th>生年月日</th><td>{person.born}</td></tr> : null }
-                    { person.died ? <tr><th>没年月日</th><td>{person.died}</td></tr> : null }
-                    { person.description ? <tr><th>解説</th><td><Fragment set:html={descHtml} /></td></tr> : null }
+                    { person.born ? <tr><th>生年月日：</th><td>{person.born}</td></tr> : null }
+                    { person.died ? <tr><th>没年月日：</th><td>{person.died}</td></tr> : null }
+                    { person.description ? <tr><th>解　説：</th><td><Fragment set:html={descHtml} /></td></tr> : null }
                     {
                         relatedLinks.length > 0 ?
-                        <tr><th>リンク</th><td><Fragment set:html={relatedLinks.map(l => `<a href="${l.url}">${l.alt}</a>`).join("<br>")}/></td></tr> :
+                        <tr><th>リンク：</th><td><Fragment set:html={relatedLinks.map(l => `<a href="${l.url}">${l.alt}</a>`).join("<br>")}/></td></tr> :
                         null
                     }    
                 </tbody>

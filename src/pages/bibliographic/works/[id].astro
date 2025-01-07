@@ -154,33 +154,33 @@ const relatedLinks = links.filter(x => x.linkType === 'LINK');
                 <tbody>
                     {
                         work.variantTitles != null && work.variantTitles != "" ?
-                        <tr><th>別名</th><td>{work.variantTitles}</td></tr> : null
+                        <tr><th>別　名：</th><td>{work.variantTitles}</td></tr> : null
                     }
-                    <tr><th>種別</th><td>{work.contentType}</td></tr>
+                    <tr><th>種　別：</th><td>{work.contentType}</td></tr>
                     {
                         authors.length > 0 ?
-                        <tr><th>著作者</th><td><Fragment set:html={authors.map(x => `<a href="/bibliographic/persons/${x.id}">${x.name} ${x.role.replace("者" , "")}</a>`).join('<br>')} /></td></tr> : null
+                        <tr><th>著作者：</th><td><Fragment set:html={authors.map(x => `<a href="/bibliographic/persons/${x.id}">${x.name} ${x.role.replace("者" , "")}</a>`).join('<br>')} /></td></tr> : null
                     }    
                     { 
                         firstPublished ? 
-                        <tr><th>掲載</th><td>{firstPublished.title} {firstPublished.description}</td></tr> : null
+                        <tr><th>掲　載：</th><td>{firstPublished.title} {firstPublished.description}</td></tr> : null
                     }
-                    <tr><th>発表年</th><td>{work.publicationYear ?? "??"}年{ work.publicationEndYear != null ? ` 〜 ${work.publicationEndYear}年` : "" }</td></tr>
+                    <tr><th>発表年：</th><td>{work.publicationYear ?? "??"}年{ work.publicationEndYear != null ? ` 〜 ${work.publicationEndYear}年` : "" }</td></tr>
                     {
                         work.synopsis != null && work.synopsis != "" ?
-                        <tr><th>あらすじ</th><td><Fragment set:html={synopsisHtml} /></td></tr> : null
+                        <tr><th>あらすじ：</th><td><Fragment set:html={synopsisHtml} /></td></tr> : null
                     }
                     {
                         work.description != null && work.description != "" ?
-                        <tr><th>解説</th><td><Fragment set:html={descHtml} /></td></tr> : null
+                        <tr><th>解　説：</th><td><Fragment set:html={descHtml} /></td></tr> : null
                     }
                     {
                         work.note != null && work.note != "" ?
-                        <tr><th>付記</th><td><Fragment set:html={noteHtml} /></td></tr> : null
+                        <tr><th>Note：</th><td><Fragment set:html={noteHtml} /></td></tr> : null
                     }
                     {
                         relatedLinks.length > 0 ?
-                        <tr><th>リンク</th><td><Fragment set:html={relatedLinks.map(l => `<a href="${l.url}">${l.alt}</a>`).join("<br>")}/></td></tr> :
+                        <tr><th>リンク：</th><td><Fragment set:html={relatedLinks.map(l => `<a href="${l.url}">${l.alt}</a>`).join("<br>")}/></td></tr> :
                         null
                     }    
                     

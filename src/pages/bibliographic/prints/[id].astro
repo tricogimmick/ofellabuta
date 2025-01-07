@@ -2,6 +2,8 @@
 import type { GetStaticPaths } from "astro";
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import sqlite3 from 'sqlite3';
+import { marked } from 'marked';
+
 import type { PrintType } from '../../../types/print';
 import type { SeriesType } from '../../../types/series';
 import type { PublisherType } from "../../../types/publisher";
@@ -10,7 +12,6 @@ import type { RelatedLinksType } from "../../../types/relatedLinks";
 
 import { magazineData } from '../../../scripts/lib.ts'
 import BreadcrumbList, { type BreadcrumbListType } from "../../../components/BreadcrumbList.astro";
-import { serializeActionResult } from "astro:actions";
 
 type ParamsType = {
     id: number;
@@ -227,27 +228,27 @@ if (series) {
             }
             <table>
                 <tbody>
-                    <tr><th>出版種別</th><td>{print.printType}</td></tr>
+                    <tr><th>出版種別：</th><td>{print.printType}</td></tr>
                     {
                         authors.length > 0 ?
-                        <tr><th>著作者</th><td><Fragment set:html={authors.map(x => `<a href="/bibliographic/persons/${x.id}">${x.name} ${x.role.replace("者", "")}</a>`).join(' / ')} /></td></tr> : null
+                        <tr><th>著作者：</th><td><Fragment set:html={authors.map(x => `<a href="/bibliographic/persons/${x.id}">${x.name} ${x.role.replace("者", "")}</a>`).join(' / ')} /></td></tr> : null
                     }
-                    <tr><th>出版社</th><td>{ brand ? `${publisher?.name}（${brand.name}）` : publisher?.name}</td></tr>
-                    <tr><th>発行日</th><td>{print.publicationDate}</td></tr>
-                    <tr><th>SEQ No</th><td>{print.issueNumber}</td></tr>
+                    <tr><th>出版社：</th><td>{ brand ? `${publisher?.name}（${brand.name}）` : publisher?.name}</td></tr>
+                    <tr><th>発行日：</th><td>{print.publicationDate}</td></tr>
+                    <tr><th>SEQ No：</th><td>{print.issueNumber}</td></tr>
                     {
                         print.description ?
-                        <tr><th>解説</th><td>{print.description}</td></tr> :
+                        <tr><th>解説：</th><td><Fragment set:html={marked.parse(print.description)} /></td></tr> :
                         null
                     }
                     {
                         workOfCover ?
-                        <tr><th>表紙</th><td>{workOfCover.title}</td></tr> :
+                        <tr><th>表紙：</th><td>{workOfCover.title}</td></tr> :
                         null
                     }
                     {
                         relatedLinks.length > 0 ?
-                        <tr><th>リンク</th><td><Fragment set:html={relatedLinks.map(l => `<a href="${l.url}">${l.alt}</a>`).join("<br>")}/></td></tr> :
+                        <tr><th>リンク：</th><td><Fragment set:html={relatedLinks.map(l => `<a href="${l.url}">${l.alt}</a>`).join("<br>")}/></td></tr> :
                         null
                     }
                 </tbody>
@@ -318,11 +319,13 @@ if (series) {
                     width: 400px;
                     vertical-align: top;
                     padding: 0;
+                    > p:first-child {
+                        margin-top: 0;
+                    }
                 }             
                 > tbody > tr:nth-child(even) {
                     background-color: unset
                 }
-
             }
         }
         .contents {

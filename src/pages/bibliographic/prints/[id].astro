@@ -8,6 +8,10 @@ import type { PublisherType } from "../../../types/publisher";
 import type { BrandType } from "../../../types/brand";
 import type { RelatedLinksType } from "../../../types/relatedLinks";
 
+import { magazineData } from '../../../scripts/lib.ts'
+import BreadcrumbList, { type BreadcrumbListType } from "../../../components/BreadcrumbList.astro";
+import { serializeActionResult } from "astro:actions";
+
 type ParamsType = {
     id: number;
 };
@@ -18,16 +22,26 @@ type GetStaticPathsType = {
     params: ParamsType;
     props: PropsType;
 };
+type AuthorType = {
+    id: number;
+    name: string;
+    role: string;
+};
+type WorkOfCoverType = {
+    title: string;
+};
 type ContentType = {
     orderNo: number;
     color: number | null;
     publishType: string;
     serializationStatus: string;
     title: string;
+    authorId: number | null;
     author: string;
     role: string;
     description: string;
     pageNo: number | null;
+    workId: number | null;
 };
 
 export async function getStaticPaths() {
@@ -63,6 +77,23 @@ function getSeries(db: sqlite3.Database, seriesId: number) {
     });
 }
 
+function getAuthors(db: sqlite3.Database, printId: number) {
+    return new Promise<AuthorType[]>((ok, ng) => {
+        db.all<AuthorType>(
+            "SELECT p.id, p.name, rp.role FROM related_persons as rp " +
+            "JOIN persons as p ON p.id = rp.personId " +
+            "WHERE rp.relatedType = 'PRINT' AND rp.relatedId = ?",
+            [printId],
+            (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows || []);
+                }
+            });
+    });
+}
+
 function getPublisher(db: sqlite3.Database, publisherId: number) {
     return new Promise<PublisherType>((ok, ng) => {
         db.get<PublisherType>("SELECT * FROM publishers WHERE id = ?", [publisherId], (err, row) => {
@@ -87,11 +118,28 @@ function getBrand(db: sqlite3.Database, brandId: number) {
     });
 }
 
+function getWorkOfCover(db: sqlite3.Database, printId: number) {
+    return new Promise<WorkOfCoverType>((ok, ng) => {
+        db.get<WorkOfCoverType>(
+            "SELECT w.title FROM related_works as r " +
+            "JOIN works as w ON w.id = r.workId " +
+            "WHERE r.relatedType = 'PRINT' AND r.subType = 'COVER' AND r.relatedId = ? ",
+            [printId],
+            (err, row) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(row || '');
+                }
+            });
+    });
+}
+
 function getContents(db: sqlite3.Database, printId: number) {
     return new Promise<ContentType[]>((ok, ng) => {
         db.all<ContentType>(
             "SELECT c.orderNo, c.color, c.publishType, c.serializationStatus, " +
-            "IFNULL(w.title, c.title) as title, p.name as author, rp.role, c.description, c.pageNo " +
+            "IFNULL(w.title, c.title) as title, p.id as authorId, p.name as author, rp.role, c.description, c.pageNo, c.workId " +
             "FROM contents as c " +
             "LEFT JOIN works as w on w.id = c.workId " +
             "LEFT JOIN related_persons as rp ON rp.relatedType = 'WORK' and rp.relatedId = w.id " +
@@ -129,8 +177,9 @@ function formatContents(contents: ContentType[]) {
     contents.forEach(c => {
         const content = result.find(x => x.orderNo === c.orderNo);
         if (content) {
-            content.author += ` / ${c.author}`;
+            content.author += ` / <a href="/bibliographic/persons/${c.authorId}">${c.author}</a>`;
         } else {
+            c.author = c.author ? `<a href="/bibliographic/persons/${c.authorId}">${c.author}</a>` : '';
             result.push(c);
         }
     });
@@ -143,67 +192,104 @@ const { print } = Astro.props;
 const dbPath = import.meta.env.BIBLIODB_PATH;
 const db = new sqlite3.Database(dbPath);
 const series = print.seriesId ? await getSeries(db, print.seriesId) : null;
+const authors = await getAuthors(db, id);
 const publisher = print.publisherId ? await getPublisher(db, print.publisherId) : null;
 const brand = print.brandId ? await getBrand(db, print.brandId) : null;
+const workOfCover = await getWorkOfCover(db, id);
+
 const contents = formatContents(await getContents(db, id));
 const links = await getRelatedLinks(db, id);
 const title = series ? `${series.title} ${print.title}` : print.title;
-const cover = links.find(x => x.linkType === 'IMG' && x.alt === '表紙');
+const coverImage = links.find(x => x.linkType === 'IMG' && x.alt === '表紙');
+const relatedLinks = links.filter(x => x.linkType === 'LINK');
+
+const magData = magazineData.find(x => x.id === print.seriesId);
+
+const breadcrumbList: BreadcrumbListType = {
+    items: [
+        { name: "Bibliographic Data", url: "/bibliographic" },
+    ]
+};
+if (series) {
+    breadcrumbList.items.push({name: series?.title ?? "", url: `/bibliographic/series/${series.id}`});
+}
+
 ---
 <BaseLayout pageTitle={title}>
-  <h2>{title}</h2>
-  <div class="print">
-    <div class="print-info">
-        {
-            cover ?
-            <div class="cover"><img src={cover.url} /></div> :
-            null
-        }
-        <table>
-            <tbody>
-                <tr><th>出版種別</th><td>{print.printType}</td></tr>
-                <tr><th>出版社</th><td>{ brand ? `${publisher?.name}（${brand.name}）` : publisher?.name}</td></tr>
-                <tr><th>発行日</th><td>{print.publicationDate}</td></tr>
-                <tr><th>SEQ No</th><td>{print.issueNumber}</td></tr>
-                {
-                    print.description ?
-                    <tr><th>解説</th><td>{print.description}</td></tr> :
-                    null
-                }
-            </tbody>
-        </table>
+    <BreadcrumbList {breadcrumbList} />
+    <h2>{title}</h2>
+    <div class="print">
+        <div class="print-info">
+            {
+                coverImage ?
+                <div class="cover"><img src={coverImage.url} /></div> :
+                null
+            }
+            <table>
+                <tbody>
+                    <tr><th>出版種別</th><td>{print.printType}</td></tr>
+                    {
+                        authors.length > 0 ?
+                        <tr><th>著作者</th><td><Fragment set:html={authors.map(x => `<a href="/bibliographic/persons/${x.id}">${x.name} ${x.role.replace("者", "")}</a>`).join(' / ')} /></td></tr> : null
+                    }
+                    <tr><th>出版社</th><td>{ brand ? `${publisher?.name}（${brand.name}）` : publisher?.name}</td></tr>
+                    <tr><th>発行日</th><td>{print.publicationDate}</td></tr>
+                    <tr><th>SEQ No</th><td>{print.issueNumber}</td></tr>
+                    {
+                        print.description ?
+                        <tr><th>解説</th><td>{print.description}</td></tr> :
+                        null
+                    }
+                    {
+                        workOfCover ?
+                        <tr><th>表紙</th><td>{workOfCover.title}</td></tr> :
+                        null
+                    }
+                    {
+                        relatedLinks.length > 0 ?
+                        <tr><th>リンク</th><td><Fragment set:html={relatedLinks.map(l => `<a href="${l.url}">${l.alt}</a>`).join("<br>")}/></td></tr> :
+                        null
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="contents">
+            <table>
+                <thead>
+                    <tr>
+                        <th>順番</th>
+                        <th>色</th>
+                        <th>種別</th>
+                        <th>タイトル</th>
+                        <th>著者</th>
+                        <th>説明</th>
+                        <th>ページ数</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {
+                        contents.map((content) => (
+                            <tr>
+                                <td>{content.orderNo}</td>
+                                <td>{ content.color == 1 ? "C" : ""}</td>
+                                <td>{content.publishType.substring(0,2)}</td>
+                                <td>
+                                    {
+                                        content.workId ?
+                                        <a href={`/bibliographic/works/${content.workId}`}>{content.title}</a> :
+                                        content.title
+                                    }
+                                </td>
+                                <td><Fragment set:html={content.author} /></td>
+                                <td>{content.description}</td>
+                                <td>{content.pageNo}</td>
+                            </tr>
+                        ))
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
-    <div class="contents">
-        <table>
-            <thead>
-                <tr>
-                    <th>順番</th>
-                    <th>色</th>
-                    <th>種別</th>
-                    <th>タイトル</th>
-                    <th>著者</th>
-                    <th>説明</th>
-                    <th>ページ数</th>
-                </tr>
-            </thead>
-            <tbody>
-                {
-                    contents.map((content) => (
-                        <tr>
-                            <td>{content.orderNo}</td>
-                            <td>{ content.color == 1 ? "C" : ""}</td>
-                            <td>{content.publishType.substring(0,2)}</td>
-                            <td>{content.title}</td>
-                            <td>{content.author}</td>
-                            <td>{content.description}</td>
-                            <td>{content.pageNo}</td>
-                        </tr>
-                    ))
-                }
-            </tbody>
-        </table>
-    </div>
-</div>
 </BaseLayout>
 
 <style>
@@ -229,7 +315,7 @@ const cover = links.find(x => x.linkType === 'IMG' && x.alt === '表紙');
                     padding: 0;
                 }
                 td {
-                    width: 200px;
+                    width: 400px;
                     vertical-align: top;
                     padding: 0;
                 }             

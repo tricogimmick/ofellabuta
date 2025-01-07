@@ -1,0 +1,183 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import sqlite3 from 'sqlite3';
+import type { PersonType } from '../../../types/person';
+
+type ParamsType = {
+    id: number;
+};
+type PropsType = {
+    person: PersonType;
+};
+type GetStaticPathsType = {
+    params: ParamsType;
+    props: PropsType;
+};
+type WorkType = {
+    id: number;
+    title: string;
+    publicationYear: number;
+    contentType: string;
+}
+
+export async function getStaticPaths() {
+    const dbPath = import.meta.env.BIBLIODB_PATH;
+    return new Promise<GetStaticPathsType[]>((ok, ng) => {
+        const db = new sqlite3.Database(dbPath);
+        try {
+            db.all<PersonType>("SELECT * FROM persons ORDER BY id", [], (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows.map(x => ({
+                        params: { id: x.id ?? 0 },
+                        props: { person: x }
+                    })));
+                }
+            });
+        } finally {
+            db.close();
+        }
+    });
+}
+
+function getWorks(db: sqlite3.Database, personId: number) {
+    return new Promise<WorkType[]>((ok, ng) => {
+        db.all<WorkType>(
+            "SELECT w.id, w.title, w.publicationYear, w.contentType FROM works as w " +
+            "LEFT JOIN related_persons as rp ON rp.relatedType = 'WORK' AND rp.relatedId = w.id " +
+            "WHERE rp.personId = ? ORDER BY w.publicationYear, w.seqNo", 
+            [personId], 
+            (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows || []);
+                }
+            });
+    });
+}
+
+
+const { id } = Astro.params;
+const { person } = Astro.props;
+
+const dbPath = import.meta.env.BIBLIODB_PATH;
+const db = new sqlite3.Database(dbPath);
+const works = await getWorks(db, id);
+
+---
+<BaseLayout pageTitle={person.name}>
+    <h2>{person.name}{ person.kana != null && person.kana != "" ? <span class="kana">({person.kana})</span> : null }</h2>
+    <div class="person">
+        <div class="person-info">
+            <table>
+                <tbody>
+                    { person.born ? <tr><th>生年月日</th><td>{person.born}</td></tr> : null }
+                    { person.died ? <tr><th>没年月日</th><td>{person.died}</td></tr> : null }
+                    { person.description ? <tr><th>解説</th><td>{person.description}</td></tr> : null }
+                </tbody>
+            </table>
+        </div>
+        <div class="container works">
+            <h4>作品リスト</h4>
+            <div class="container-header">
+                <div class="container-row">
+                    <div class="container-cell">No</div>
+                    <div class="container-cell">タイトル</div>
+                    <div class="container-cell">発表年</div>
+                    <div class="container-cell">種別</div>
+                </div>
+            </div>
+            <div class="contaner-body">
+                {
+                    works.map((work, idx) => (
+                        <div class={`container-row ${idx % 2 == 0 ? "even" : "odd"}`}>
+                            <div class="container-cell">{idx + 1}</div>
+                            <div class="container-cell"><a href={`/bibliographic/works/${work.id}`}>{work.title}</a></div>
+                            <div class="container-cell">{work.publicationYear}</div>
+                            <div class="container-cell">{work.contentType}</div>
+                        </div>
+                    ))
+                }
+            </div>
+        </div>
+    </div>
+</BaseLayout>
+
+<style>
+    h2 {
+        .kana {
+            font-size: 0.7em;
+            margin-left: 1em;
+        }
+    }
+    .person {
+        .person-info {
+            table {
+                font-size: 12px;
+                border-collapse: collapse;
+                width: unset;
+                th {
+                    font-weight: normal;
+                    text-align: left;
+                    vertical-align: top;
+                    width: 100px;
+                    padding: 0;
+                }
+                td {
+                    width: 400px;
+                    vertical-align: top;
+                    padding: 0;
+                }             
+                > tbody > tr:nth-child(even) {
+                    background-color: unset
+                }
+
+            }
+        }
+        .container {
+            padding: 0;
+            font-size: 12px;
+            .container-header {
+                margin: 0;
+                padding: 0;
+                border-bottom: 1px solid gray;
+                font-weight: bold;
+            }
+            .contaner-body {
+                margin: 0;
+                padding: 0;
+                max-height: 31em;
+                overflow-y: auto;
+            }
+            .container-row {
+                margin: 0;
+                padding: 0;
+                display: flex;
+                .container-cell {
+                    padding: 0.2em 1em;
+                }
+                .container-cell:nth-child(1) {
+                    width: 4em;
+                    text-align: right;
+                }
+                .container-cell:nth-child(2) {
+                    width: 40em;
+                    text-align: left;
+                }
+                .container-cell:nth-child(3) {
+                    width: 6em;
+                    text-align: right;
+                }
+                .container-cell:nth-child(4) {
+                    width: 10em;
+                    text-align: left;
+                }
+            }
+            .container-row.even {
+                background-color: #e0e0e0;
+            }
+        }
+    }
+</style>

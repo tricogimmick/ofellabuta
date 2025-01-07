@@ -1,0 +1,226 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import sqlite3 from 'sqlite3';
+import type { WorkType } from '../../../types/work';
+
+
+type ParamsType = {
+    id: number;
+};
+type PropsType = {
+    work: WorkType;
+};
+type GetStaticPathsType = {
+    params: ParamsType;
+    props: PropsType;
+};
+type AuthorType = {
+    id: number;
+    name: string;
+    role: string;
+};
+type firstPublishedType = {
+    title: string;
+    description: string;
+}
+type PrintType = {
+    id: number;
+    series: string;
+    title: string;
+    publisher: string;
+    publicationDate: string;
+    printType: string;
+}
+
+export async function getStaticPaths() {
+    const dbPath = import.meta.env.BIBLIODB_PATH;
+    return new Promise<GetStaticPathsType[]>((ok, ng) => {
+        const db = new sqlite3.Database(dbPath);
+        try {
+            db.all<WorkType>("SELECT * FROM works ORDER BY id", [], (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows.map(x => ({
+                        params: { id: x.id ?? 0 },
+                        props: { work: x }
+                    })));
+                }
+            });
+        } finally {
+            db.close();
+        }
+    });
+}
+
+function getAuthors(db: sqlite3.Database, printId: number) {
+    return new Promise<AuthorType[]>((ok, ng) => {
+        db.all<AuthorType>(
+            "SELECT p.id, p.name, rp.role FROM related_persons as rp " +
+            "JOIN persons as p ON p.id = rp.personId " +
+            "WHERE rp.relatedType = 'WORK' AND rp.relatedId = ?",
+            [printId],
+            (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows || []);
+                }
+            });
+    });
+}
+
+function getFirstPublished(db: sqlite3.Database, workId: number) {
+    return new Promise<firstPublishedType>((ok, ng) => {
+        db.get<firstPublishedType>(
+            "SELECT s.title, r.description " +
+            "FROM related_series as r " +
+            "JOIN series as s ON s.id = r.seriesId  " +
+            "WHERE r.relatedType = 'WORK' AND r.relatedId = ? AND r.isMedia = 1",
+            [workId],
+            (err, row) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(row);
+                }
+            });
+    });
+}
+
+function getPrints(db: sqlite3.Database, workId: number) {
+    return new Promise<PrintType[]>((ok, ng) => {
+        db.all<PrintType>(
+            "SELECT p.id, s.title as series, p.title, pb.name as publisher, p.publicationDate, p.printType " +
+            "FROM contents as c " +
+            "JOIN prints as p ON p.id = c.printId " +
+            "JOIN series as s ON s.id = p.seriesId " +
+            "LEFT JOIN publishers as pb ON pb.id = p.publisherId " +
+            "WHERE c.workId = ? " +
+            "ORDER BY p.publicationDate",
+            [workId],
+            (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows || []);
+                }
+            });
+    });
+}
+
+const { id } = Astro.params;
+const { work } = Astro.props;
+
+const dbPath = import.meta.env.BIBLIODB_PATH;
+const db = new sqlite3.Database(dbPath);
+const authors = await getAuthors(db, id);
+const firstPublished = await getFirstPublished(db, id);
+const prints = await getPrints(db, id);
+
+const title = work.title ?? "Unknown";
+
+---
+<BaseLayout pageTitle={title}>
+    <h2>{title}</h2>
+    <div class="work">
+        <div class="work-info">
+            <table>
+                <tbody>
+                    {
+                        work.variantTitles != null && work.variantTitles != "" ?
+                        <tr><th>別名</th><td>{work.variantTitles}</td></tr> : null
+                    }
+                    <tr><th>種別</th><td>{work.contentType}</td></tr>
+                    {
+                        authors.length > 0 ?
+                        <tr><th>著作者</th><td><Fragment set:html={authors.map(x => `<a href="/bibliographic/persons/${x.id}">${x.name} ${x.role.replace("者" , "")}</a>`).join('<br>')} /></td></tr> : null
+                    }    
+                    { 
+                        firstPublished ? 
+                        <tr><th>掲載</th><td>{firstPublished.title} {firstPublished.description}</td></tr> : null
+                    }
+                    <tr><th>発表年</th><td>{work.publicationYear ?? "??"}年{ work.publicationEndYear != null ? ` 〜 ${work.publicationEndYear}年` : "" }</td></tr>
+                    {
+                        work.description != null && work.description != "" ?
+                        <tr><th>解説</th><td>{work.description}</td></tr> : null
+                    }
+                    {
+                        work.note != null && work.note != "" ?
+                        <tr><th>付記</th><td>{work.note}</td></tr> : null
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="prints">
+            <h4>掲載書籍・雑誌</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>タイトル</th>
+                        <th>出版社</th>
+                        <th>発行日</th>
+                        <th>種別</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {
+                        prints.map((print, i) => (
+                            <tr>
+                                <td>{i + 1}</td>
+                                <td><a href={`/bibliographic/prints/${print.id}`}>{ print.series } { print.title }</a></td>
+                                <td>{ print.publisher}</td>
+                                <td>{ print.publicationDate }</td>
+                                <td>{ print.printType}</td>
+                            </tr>
+                        ))
+                    }
+                </tbody>
+            </table>
+        </div>    
+    </div>
+</BaseLayout>  
+
+<style>
+    .work {
+        .work-info {
+            table {
+                font-size: 12px;
+                border-collapse: collapse;
+                width: unset;
+                th {
+                    font-weight: normal;
+                    text-align: left;
+                    vertical-align: top;
+                    width: 100px;
+                    padding: 0;
+                }
+                td {
+                    width: 400px;
+                    vertical-align: top;
+                    padding: 0;
+                }             
+                > tbody > tr:nth-child(even) {
+                    background-color: unset
+                }
+
+            }
+        }
+        .prints {
+            table {
+                font-size: 12px;
+                border-collapse: collapse;
+                width: 100%;
+                th {
+                    text-align: left;
+                }
+                th:nth-child(1), td:nth-child(1) {
+                    width: 20px;
+                    text-align: right;
+                }
+            }
+        }
+    }
+</style>

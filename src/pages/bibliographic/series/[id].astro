@@ -1,0 +1,151 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import sqlite3 from 'sqlite3';
+import BreadcrumbList, { type BreadcrumbListType } from '../../../components/BreadcrumbList.astro';
+import { magazineData } from '../../../scripts/lib.ts'
+import type { SeriesType } from '../../../types/series';
+
+type ParamsType = {
+    id: number;
+};
+type PropsType = {
+    series: SeriesType;
+};
+type GetStaticPathsType = {
+    params: ParamsType;
+    props: PropsType;
+};
+
+type IssueType = {
+    id: number;
+    title: string;
+    url: string;
+    issueNumber: number;
+}
+
+
+export async function getStaticPaths() {
+    const dbPath = import.meta.env.BIBLIODB_PATH;
+    return new Promise<GetStaticPathsType[]>((ok, ng) => {
+        const db = new sqlite3.Database(dbPath);
+        try {
+            db.all<SeriesType>("SELECT * FROM series ORDER BY id", [], (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows.map(x => ({
+                        params: { id: x.id ?? 0 },
+                        props: { series: x }
+                    })));
+                }
+            });
+        } finally {
+            db.close();
+        }
+    });
+}
+
+function getIssues(db: sqlite3.Database, seriesId: number) {
+    return new Promise<IssueType[]>((ok, ng) => {
+        db.all<IssueType>(
+            "SELECT p.id, p.title, rl.url, p.issueNumber " +
+            "FROM prints as p "  +
+            "LEFT JOIN related_links as rl ON rl.relatedType = 'PRINT' and rl.relatedId = p.id AND rl.linkType = 'IMG' AND rl.alt = '表紙'" +
+            "WHERE p.seriesid = ? ORDER BY p.issueNumber", 
+            [seriesId], 
+            (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows || []);
+                }
+            });
+    });
+}
+
+const { id } = Astro.params;
+const { series } = Astro.props;
+
+const dbPath = import.meta.env.BIBLIODB_PATH;
+const db = new sqlite3.Database(dbPath);
+const issues = await getIssues(db, id); 
+let years = null;
+
+const breadcrumbList : BreadcrumbListType = {
+    items: [
+      { name: "Bibliographic Data", url: "/bibliographic" }
+    ]
+};
+if (magazineData.find(x => x.id == series.id)) {
+  years = issues.reduce((acc, issue) => acc.includes(String(issue.issueNumber).substring(0,4)) ? acc : [...acc, String(issue.issueNumber).substring(0,4)], [] as string[]);
+}
+
+---
+<BaseLayout pageTitle={series.title}>
+  <BreadcrumbList {breadcrumbList} />
+  <h2>{series.title}</h2>
+  {
+    years ?
+    years.reverse().map( y => (
+      <h4>{y}年</h4>
+      <div class="issues">
+        {
+          issues.filter(issue => String(issue.issueNumber).substring(0, 4) === y).map((issue) => (
+              <div class="issue">
+                <a href={`/bibliographic/prints/${issue.id}`}><img src={issue.url} /></a>
+                <div class="title"><a href={`/bibliographic/prints/${issue.id}`}>{issue.title}</a></div>
+              </div>
+          ))
+        }
+      </div>
+    )) :
+    <div class="issues">
+      {
+        issues.map((issue) => (
+            <div class="issue">
+              <a href={`/bibliographic/prints/${issue.id}`}>
+                {
+                  issue.url != null && issue.url != "" ?  <img src={issue.url} /> : <span class="no-image">NO IMAGE</span>
+                }
+              </a>
+              <div class="title"><a href={`/bibliographic/prints/${issue.id}`}>{issue.title}</a></div>
+            </div>
+        ))
+      }
+    </div>
+  }
+</BaseLayout>
+
+<style>
+    .issues {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 10px;
+        .issue {
+          > a {
+            text-decoration: none;
+          }
+            img {
+                width: 150px;
+                height: 214px;
+            }
+            .no-image {
+                display: grid;
+                width: 150px;
+                height: 214px;
+                border: 1px solid gray;
+                background-color: silver;
+                place-items: center;
+                margin-bottom: 0.5em;
+                font-size: 12px;
+                font-weight: bold;
+
+            }
+            .title {
+                font-size: 12px;
+                line-height: 12px;
+                text-align: center;
+            }
+        }
+    }
+ </style>

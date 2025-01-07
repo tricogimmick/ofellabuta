@@ -1,13 +1,57 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { magazineData } from '../../scripts/lib.ts'
+
+const persons = [
+    {
+        id: 964,
+        name: "江戸川乱歩"
+    }
+]
 
 ---
 <BaseLayout pageTitle="Bibliograpohic Data">
     <h2>Bibliograpohic Data</h2>
-    <div>
-      <a href="/bibliographic/comic-magazines/">Comic Magazines</a>
+    <div class="bibliograpohics">
+        <div class="bibliograpohics-list person">
+          <h3>人物</h3>
+          <div>
+            {
+              persons.map((person) => (
+                  <div class="item">
+                      <a href={`/bibliographic/persons/${person.id}`}>{person.name}</a>
+                  </div>
+              ))
+            }
+          </div>
+        </div>
+        <div class="bibliograpohics-list comic-magazines">
+          <h3>マンガ雑誌</h3>
+          <div>
+            {
+              magazineData.map((mag) => (
+                  <div class="item">
+                      <a href={`/bibliographic/series/${mag.id}`}>{mag.title}</a>
+                  </div>
+              ))  
+            }    
+          </div>
+      </div>
     </div>
 </BaseLayout>
 
 <style>
-  </style>
+  .bibliograpohics {
+    display: flex;
+    gap: 2rem;
+    .bibliograpohics-list {
+      flex: 1 0 auto;
+      > div {
+        margin-left: 20px;
+        .item {
+          margin-bottom: 0.5em;
+        }
+      }
+    }
+  }
+</style>

@@ -1,0 +1,45 @@
+---
+export type BreadcrumbListType = {
+  items: {
+    name: string;
+    url: string;
+  }[];
+};
+
+interface Props {
+    breadcrumbList: BreadcrumbListType;
+}
+
+const { breadcrumbList } = Astro.props;
+
+---
+{
+    breadcrumbList.items.length === 0 ? null :
+    <div class="breadcrumb-list">
+    <ol>
+        {
+            breadcrumbList.items.map((item) => (
+                <li><a href={item.url}>{item.name}</a></li>
+            ))
+        }
+    </ol>
+    </div>
+}
+<style>
+    .breadcrumb-list {
+        margin-bottom: 1em;
+        ol {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            li {
+                margin-right: 0.5em;
+                &::before {
+                    content: '>';
+                    margin-right: 0.5em;
+                }
+            }
+        }
+    }
+</style>

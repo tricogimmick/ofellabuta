@@ -88,7 +88,7 @@ const links = await getRelatedLinks(db, id);
 const portraitImage = links.find(x => x.linkType === 'IMG' && x.alt === '肖像');
 const relatedLinks = links.filter(x => x.linkType === 'LINK');
 
-const descHtml = marked.parse(person.description);
+const descHtml = person.description != null && person.description != "" ? marked.parse(person.description) : "";
 
 ---
 <BaseLayout pageTitle={person.name}>

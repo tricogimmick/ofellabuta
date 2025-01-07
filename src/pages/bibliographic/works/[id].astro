@@ -139,9 +139,9 @@ const links = await getRelatedLinks(db, id);
 const prints = await getPrints(db, id);
 
 const title = work.title ?? "Unknown";
-const descHtml = marked.parse(work.description);
-const synopsisHtml = marked.parse(work.synopsis);
-const noteHtml = marked.parse(work.note);
+const descHtml = work.description != null && work.description != "" ? marked.parse(work.description) : "";
+const synopsisHtml = work.synopsis != null && work.synopsis != "" ? marked.parse(work.synopsis) : "";
+const noteHtml = work.note != null && work.note != "" ? marked.parse(work.note) : "";
 
 const relatedLinks = links.filter(x => x.linkType === 'LINK');
 

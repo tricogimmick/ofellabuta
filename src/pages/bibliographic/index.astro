@@ -11,9 +11,9 @@ const persons = [
 
 ---
 <BaseLayout pageTitle="Bibliograpohic Data">
-    <h2>Bibliograpohic Data</h2>
-    <div class="bibliograpohics">
-        <div class="bibliograpohics-list person">
+    <h2>Bibliographic Data</h2>
+    <div class="bibliographic">
+        <div class="bibliographic-list person">
           <h3>人物</h3>
           <div>
             {
@@ -25,7 +25,7 @@ const persons = [
             }
           </div>
         </div>
-        <div class="bibliograpohics-list comic-magazines">
+        <div class="bibliographic-list comic-magazines">
           <h3>マンガ雑誌</h3>
           <div>
             {
@@ -41,10 +41,10 @@ const persons = [
 </BaseLayout>
 
 <style>
-  .bibliograpohics {
+  .bibliographic {
     display: flex;
     gap: 2rem;
-    .bibliograpohics-list {
+    .bibliographic-list {
       flex: 1 0 auto;
       > div {
         margin-left: 20px;

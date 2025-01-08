@@ -106,13 +106,17 @@ const descHtml = series.description != null && series.description != "" ? marked
     <table>
       <tbody>
         <tr><th>出版社：</th><td>{publisher?.name}</td></tr>
-        {
-          series.description != null && series.description != "" ?
-          <tr><th>備　考：</th><td><Fragment set:html={descHtml} /></td></tr> : null
-        }
       </tbody>
     </table>
   </div>
+  {
+    series.description != null && series.description != "" ?
+    <div class="text-content description">
+        <div class="text-content-label">備考：</div>
+        <div class="text-content-data"><Fragment set:html={marked.parse(series.description)} /></div>
+    </div> :
+    null
+  }
   {
     years ?
     years.reverse().map( y => (
@@ -147,35 +151,37 @@ const descHtml = series.description != null && series.description != "" ? marked
 
 <style>
   .series-info {
-    margin-bottom: 1em;
     table {
-      font-size: 12px;
+      font-size: unset;
       border-collapse: collapse;
       width: unset;
       th {
           font-weight: normal;
           text-align: left;
           vertical-align: top;
-          width: 50px;
-          padding: 0;
+          width: 6em;
+          padding: 0.2em;
       }
       td {
-          width: 400px;
+          width: 40em;
           vertical-align: top;
-          padding: 0;
-          > p:first-child {
-              margin-top: 0;
-          }
+          padding: 0.2em;
       }             
       > tbody > tr:nth-child(even) {
           background-color: unset
       }
     }
   }
+  .text-content {
+    padding: 0.2em;
+    > div.text-content-data {
+        margin-left: 1em;
+    } 
+  }
   .issues {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px 10px;
+      gap: 1em;
       .issue {
         > a {
           text-decoration: none;

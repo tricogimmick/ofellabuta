@@ -117,8 +117,6 @@ const links = await getRelatedLinks(db, id);
 const portraitImage = links.find(x => x.linkType === 'IMG' && x.alt === '肖像');
 const relatedLinks = links.filter(x => x.linkType === 'LINK');
 
-const descHtml = person.description != null && person.description != "" ? marked.parse(person.description) : "";
-
 ---
 <BaseLayout pageTitle={person.name}>
     <h2>{person.name}{ person.kana != null && person.kana != "" ? <span class="kana">({person.kana})</span> : null }</h2>
@@ -129,12 +127,10 @@ const descHtml = person.description != null && person.description != "" ? marked
                 <div class="portrait-image"><img src={portraitImage.url} /></div> :
                 null
             }
-
             <table>
                 <tbody>
                     { person.born ? <tr><th>生年月日：</th><td>{person.born}</td></tr> : null }
                     { person.died ? <tr><th>没年月日：</th><td>{person.died}</td></tr> : null }
-                    { person.description ? <tr><th>解　説：</th><td><Fragment set:html={descHtml} /></td></tr> : null }
                     {
                         relatedLinks.length > 0 ?
                         <tr><th>リンク：</th><td><Fragment set:html={relatedLinks.map(l => `<a href="${l.url}">${l.alt}</a>`).join("<br>")}/></td></tr> :
@@ -143,6 +139,14 @@ const descHtml = person.description != null && person.description != "" ? marked
                 </tbody>
             </table>
         </div>
+        {
+            person.description != null && person.description != "" ?
+            <div class="text-content description">
+                <div class="text-content-label">備考：</div>
+                <div class="text-content-data"><Fragment set:html={marked.parse(person.description)} /></div>
+            </div> :
+            null
+        }
         <div class="tab">
             <button id="works-tab" class="selected">作品リスト</button>
             <button id="prints-tab">書籍リスト</button>
@@ -236,36 +240,37 @@ const descHtml = person.description != null && person.description != "" ? marked
     .person {
         .person-info {
             display: flex;
+            align-items: flex-start;
             gap: 1em;
+            margin-bottom: 1em;
             > .portrait-image > img {
                 height: 200px;
             }
             > table {
-                font-size: 12px;
+                font-size: unset;
                 border-collapse: collapse;
                 width: unset;
                 th {
                     font-weight: normal;
                     text-align: left;
                     vertical-align: top;
-                    width: 80px;
-                    padding: 0;
+                    width: 6em;
+                    padding: 0.2em;
                 }
                 td {
-                    width: 400px;
+                    width: 40em;
                     vertical-align: top;
-                    padding: 0;
-                    > p:first-child {
-                        margin-top: 0;
-                    }
-                    > p:last-child {
-                        margin-bottom: 0;
-                    }
+                    padding: 0.2em;
                 }             
                 > tbody > tr:nth-child(even) {
                     background-color: unset
                 }
 
+            }
+        }
+        .text-content {
+            > div.text-content-data {
+                margin-left: 1em;
             }
         }
         .tab {

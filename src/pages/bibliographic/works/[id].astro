@@ -113,7 +113,7 @@ function getPrints(db: sqlite3.Database, workId: number) {
             "SELECT p.id, s.title as series, p.title, pb.name as publisher, p.publicationDate, p.printType " +
             "FROM contents as c " +
             "JOIN prints as p ON p.id = c.printId " +
-            "JOIN series as s ON s.id = p.seriesId " +
+            "LEFT JOIN series as s ON s.id = p.seriesId " +
             "LEFT JOIN publishers as pb ON pb.id = p.publisherId " +
             "WHERE c.workId = ? " +
             "ORDER BY p.publicationDate",

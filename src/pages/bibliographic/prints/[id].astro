@@ -201,6 +201,7 @@ const workOfCover = await getWorkOfCover(db, id);
 const contents = formatContents(await getContents(db, id));
 const links = await getRelatedLinks(db, id);
 const title = series ? `${series.title} ${print.title}` : print.title;
+const bannerImage = links.find(x => x.linkType === 'IMG' && x.alt === 'バナー');
 const coverImage = links.find(x => x.linkType === 'IMG' && x.alt === '表紙');
 const relatedLinks = links.filter(x => x.linkType === 'LINK');
 
@@ -219,28 +220,30 @@ if (series) {
 <BaseLayout pageTitle={title}>
     <BreadcrumbList {breadcrumbList} />
     <h2>{title}</h2>
+    {
+        bannerImage ?
+        <div class="banner"><img src={bannerImage.url} alt={bannerImage.alt} /></div> :
+        null
+    }
     <div class="print">
         <div class="print-info">
             {
                 coverImage ?
-                <div class="cover"><img src={coverImage.url} /></div> :
+                <div class="cover"><img src={coverImage.url} alt={coverImage.alt} /></div> :
                 null
             }
             <table>
                 <tbody>
+                    <tr><th>タイトル：</th><td>{title}</td></tr>
                     <tr><th>出版種別：</th><td>{print.printType}</td></tr>
                     {
-                        authors.length > 0 ?
-                        <tr><th>著作者：</th><td><Fragment set:html={authors.map(x => `<a href="/bibliographic/persons/${x.id}">${x.name} ${x.role.replace("者", "")}</a>`).join(' / ')} /></td></tr> : null
+                        authors.map((author, index) => (
+                            <tr><th>{author.role}：</th><td><a href={`/bibliographic/persons/${author.id}`}>{author.name}</a></td></tr>
+                        ))
                     }
                     <tr><th>出版社：</th><td>{ brand ? `${publisher?.name}（${brand.name}）` : publisher?.name}</td></tr>
                     <tr><th>発行日：</th><td>{print.publicationDate}</td></tr>
-                    <tr><th>SEQ No：</th><td>{print.issueNumber}</td></tr>
-                    {
-                        print.description ?
-                        <tr><th>解説：</th><td><Fragment set:html={marked.parse(print.description)} /></td></tr> :
-                        null
-                    }
+                    <tr><th>管理番号：</th><td>{print.issueNumber}</td></tr>
                     {
                         workOfCover ?
                         <tr><th>表紙：</th><td>{workOfCover.title}</td></tr> :
@@ -254,71 +257,111 @@ if (series) {
                 </tbody>
             </table>
         </div>
-        <div class="contents">
-            <table>
-                <thead>
-                    <tr>
-                        <th>順番</th>
-                        <th>色</th>
-                        <th>種別</th>
-                        <th>タイトル</th>
-                        <th>著者</th>
-                        <th>説明</th>
-                        <th>ページ数</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {
-                        contents.map((content) => (
-                            <tr>
-                                <td>{content.orderNo}</td>
-                                <td>{ content.color == 1 ? "C" : ""}</td>
-                                <td>{content.publishType.substring(0,2)}</td>
-                                <td>
+        {
+            print.description ?
+            <div class="text-content description">
+                <div class="text-content-label">備　考：</div>
+                <div class="text-content-data"><Fragment set:html={marked.parse(print.description)} /></div>
+            </div> :
+            null
+        }
+        {
+            print.note ?
+            <div class="text-content note">
+                <div class="text-content-label">Note：</div>
+                <div class="text-content-data"><Fragment set:html={marked.parse(print.note)} /></div>
+            </div> :
+            null
+        }
+        {
+            print.toc ?
+            <div class="text-content toc">
+                <div class="text-content-label">目　次：</div>
+                <div class="text-content-data"><Fragment set:html={marked.parse(print.toc)} /></div>
+            </div> :
+            null
+        }
+        {
+            contents.length > 1 || contents.length == 1 && contents[0].title != print.title ?
+            <div class="contents">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="order-no">順番</th>
+                            {
+                                print.printType === '雑誌' ?
+                                <th class="color">色</th>
+                                <th class="publish-type">種別</th>
+                                : null
+                            }
+                            <th class="title">タイトル</th>
+                            <th class="author">著者</th>
+                            <th class="description">説明</th>
+                            <th class="page-no">ページ数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {
+                            contents.map((content) => (
+                                <tr>
+                                    <td class="order-no">{content.orderNo}</td>
                                     {
-                                        content.workId ?
-                                        <a href={`/bibliographic/works/${content.workId}`}>{content.title}</a> :
-                                        content.title
+                                        print.printType === '雑誌' ?
+                                        <td class="color">{ content.color == 1 ? "C" : ""}</td>
+                                        <td class="publish-type">{content.publishType.substring(0,2)}</td>
+                                        : null
                                     }
-                                </td>
-                                <td><Fragment set:html={content.author} /></td>
-                                <td>{content.description}</td>
-                                <td>{content.pageNo}</td>
-                            </tr>
-                        ))
-                    }
-                </tbody>
-            </table>
-        </div>
+                                    <td class="title">
+                                        {
+                                            content.workId ?
+                                            <a href={`/bibliographic/works/${content.workId}`}>{content.title}</a> :
+                                            content.title
+                                        }
+                                    </td>
+                                    <td class="author"><Fragment set:html={content.author} /></td>
+                                    <td class="description"><Fragment set:html={content.description} /></td>
+                                    <td class="page-no">{content.pageNo}</td>
+                                </tr>
+                            ))
+                        }
+                    </tbody>
+                </table>
+            </div>
+            : null
+        }
     </div>
 </BaseLayout>
 
 <style>
+    .banner {
+        margin-bottom: 1em;
+    }
     .print {
         .print-info {
             display: flex;
             align-items: flex-start;
             gap: 10px;
+            margin-bottom: 1em;
             .cover {
                 img {
                     width: 200px;
                 }
             }
             table {
-                font-size: 12px;
                 border-collapse: collapse;
                 width: unset;
+                font-size: unset;
                 th {
                     font-weight: normal;
                     text-align: left;
                     vertical-align: top;
-                    width: 100px;
-                    padding: 0;
+                    width: 6em;
+                    padding: 0.2em;
                 }
                 td {
-                    width: 400px;
                     vertical-align: top;
-                    padding: 0;
+                    padding: 0.2em;
+                    width: 40em;
                     > p:first-child {
                         margin-top: 0;
                     }
@@ -328,24 +371,29 @@ if (series) {
                 }
             }
         }
+        .text-content {
+            > div.text-content-data {
+                margin-left: 1em;
+            }
+        }
         .contents {
             table {
-                font-size: 12px;
                 border-collapse: collapse;
                 width: 100%;
                 th {
                     text-align: left;
                 }
-                th:nth-child(1), td:nth-child(1) {
+                .order-no {
                     text-align: right;
+                    width: 3em;
                 }
-                th:nth-child(2), td:nth-child(2) {
+                .color {
                     text-align: center;
                 }
-                th:nth-child(3), td:nth-child(3) {
+                .publish-type {
                     text-align: center;
                 }
-                th:nth-child(7), td:nth-child(7) {
+                .page-no {
                     text-align: right;
                 }
             }

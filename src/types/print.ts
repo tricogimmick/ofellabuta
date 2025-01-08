@@ -9,5 +9,7 @@ export type PrintType = {
     issueNumber: number | null;
     seriesId: number | null;
     description: string;   
+    toc: string;
+    note: string;
     ownedType: string; 
 }

@@ -1,12 +1,24 @@
 ---
-
+import { getCollection } from 'astro:content';
+import { sequence } from 'astro:middleware';
+const quotes = await getCollection('quotes');
 ---
 <nav>
+    <input type="hidden" id="quote-ids" value={quotes.map(quote => quote.slug).join(',')} />
     <ol>
         <li><a href="/">Home</a></li>
         <li><a href="/archives">Archives</a></li>
+        <li><a id="quote-link" href="/quotes">Quotes</a></li>
         <li><a href="/bibliographic">Bibliographic Data</a></li>
     </ol>
+    <script>
+        document.getElementById('quote-link')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            const ids = (document.getElementById('quote-ids') as HTMLDataElement).value.split(',');
+            const randomId = ids[Math.floor(Math.random() * ids.length)];
+            window.location.href = `/quotes/${randomId}`;
+        });
+    </script>
 </n1av>
 
 <style>

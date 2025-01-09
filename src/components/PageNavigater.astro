@@ -1,15 +1,16 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 interface Props {
-    prev: CollectionEntry<'articles'>|null,
-    next: CollectionEntry<'articles'>|null
+    path: string,
+    prev: string|null,
+    next: string|null
 }
-const { prev, next } = Astro.props;
+const { path, prev, next } = Astro.props;
 
 ---
 <div class="page-navi">
-    {prev && <div class="prev-navi"><a href=`/archives/${prev.slug}`>Previous</a></div>}
-    {next && <div class="next-navi"><a href=`/archives/${next.slug}`>Next</a></div>}
+    {prev && <div class="prev-navi"><a href=`/${path}/${prev}`>Previous</a></div>}
+    {next && <div class="next-navi"><a href=`/${path}/${next}`>Next</a></div>}
 </div>
 
 <style>

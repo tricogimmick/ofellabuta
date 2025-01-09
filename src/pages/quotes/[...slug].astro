@@ -1,0 +1,31 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Quote from '../../components/Quote.astro';
+import PageNavigater from '../../components/PageNavigater.astro';
+
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const quoteEntries = await getCollection('quotes');
+  return quoteEntries.map(entry => ({
+    params: { slug: entry.slug }, props: { quote: entry }
+  }));
+}
+
+const pageTitle = "Quotes";
+const { quote } = Astro.props;
+
+const quotes = await getCollection('quotes');
+const prevArticles = quotes.filter(x => x.slug < quote.slug);
+const prev = prevArticles.length > 0 ? prevArticles?.reduce((a,b) => a.slug < b.slug ? b : a): null;
+const nextArticles = quotes.filter(x => x.slug > quote.slug);
+const next = nextArticles.length > 0 ? nextArticles.reduce((a,b) => a.slug >= b.slug ? b : a) : null;
+
+
+---
+
+<BaseLayout pageTitle={pageTitle} title={quote.data.title} description={quote.data.source}>
+    <Quote {quote} />
+    <PageNavigater path="quotes" prev={prev?.slug ?? null} next={next?.slug ?? null} />
+</BaseLayout>
+  

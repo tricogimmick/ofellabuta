@@ -102,13 +102,17 @@ const descHtml = series.description != null && series.description != "" ? marked
 <BaseLayout pageTitle={series.title}>
   <BreadcrumbList {breadcrumbList} />
   <h2>{series.title}</h2>
-  <div class="series-info">
-    <table>
-      <tbody>
-        <tr><th>出版社：</th><td>{publisher?.name}</td></tr>
-      </tbody>
-    </table>
-  </div>
+  {
+    publisher ?
+    <div class="series-info">
+      <table>
+        <tbody>
+          <tr><th>出版社：</th><td>{publisher?.name}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    : null
+  }
   {
     series.description != null && series.description != "" ?
     <div class="text-content description">

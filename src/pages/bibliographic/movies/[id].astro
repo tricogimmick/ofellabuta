@@ -1,0 +1,213 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import sqlite3 from 'sqlite3';
+import { marked } from 'marked';
+
+import type { PrintType } from '../../../types/print';
+import type { MovieType } from "../../../types/movie";
+import type { SeriesType } from '../../../types/series';
+import type { RelatedLinksType } from "../../../types/relatedLinks";
+
+import BreadcrumbList, { type BreadcrumbListType } from "../../../components/BreadcrumbList.astro";
+
+type ParamsType = {
+    id: number;
+};
+type PropsType = {
+    movie: MovieType;
+};
+type GetStaticPathsType = {
+    params: ParamsType;
+    props: PropsType;
+};
+type StuffAndCastType = {
+    id: number;
+    name: string;
+    role: string;
+};
+
+export async function getStaticPaths() {
+    const dbPath = import.meta.env.BIBLIODB_PATH;
+    return new Promise<GetStaticPathsType[]>((ok, ng) => {
+        const db = new sqlite3.Database(dbPath);
+        try {
+            db.all<MovieType>("SELECT * FROM movies ORDER BY id", [], (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows.map(x => ({
+                        params: { id: x.id ?? 0 },
+                        props: { movie: x }
+                    })));
+                }
+            });
+        } finally {
+            db.close();
+        }
+    });
+}
+
+function getSeries(db: sqlite3.Database, seriesId: number) {
+    return new Promise<SeriesType>((ok, ng) => {
+        db.get<SeriesType>("SELECT * FROM series WHERE id = ?", [seriesId], (err, row) => {
+            if (err) {
+                ng(err);
+            } else {
+                ok(row);
+            }
+        });
+    });
+}
+
+function getStuffAndCasts(db: sqlite3.Database, movieId: number) {
+    return new Promise<StuffAndCastType[]>((ok, ng) => {
+        db.all<StuffAndCastType>(
+            "SELECT p.id, p.name, rp.role FROM related_persons as rp " +
+            "JOIN persons as p ON p.id = rp.personId " +
+            "WHERE rp.relatedType = 'MOVIE' AND rp.relatedId = ?",
+            [movieId],
+            (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows || []);
+                }
+            });
+    });
+}
+
+function getRelatedLinks(db: sqlite3.Database, printId: number) {
+    return new Promise<RelatedLinksType[]>((ok, ng) => {
+        db.all<RelatedLinksType>(
+            "SELECT * FROM related_links WHERE relatedType = 'MOVIE' AND relatedId = ?",
+            [printId],
+            (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows || []);
+                }
+            });
+    });
+}
+
+
+const { id } = Astro.params;
+const { movie } = Astro.props;
+
+const dbPath = import.meta.env.BIBLIODB_PATH;
+const db = new sqlite3.Database(dbPath);
+const series = movie.seriesId ? await getSeries(db, movie.seriesId) : null;
+const stuffAndCasts = await getStuffAndCasts(db, id);
+const links = await getRelatedLinks(db, id);
+const relatedLinks = links.filter(x => x.linkType === 'LINK');
+
+const breadcrumbList: BreadcrumbListType = {
+    items: [
+        { name: "Movies I've seen", url: "/movies" },
+    ]
+};
+/*
+if (series) {
+    breadcrumbList.items.push({name: series?.title ?? "", url: `/bibliographic/series/${series.id}`});
+}
+*/
+
+const roles: { role: string, data: StuffAndCastType[]}[] = [];
+stuffAndCasts.forEach(x => {
+    const item = roles.find(z => z.role == x.role);
+    if (item) {
+        item.data.push(x);
+    } else {
+        roles.push({ role: x.role, data: [x] });
+    }
+})
+
+---
+<BaseLayout pageTitle={movie.title}>
+    <BreadcrumbList {breadcrumbList} />
+    <h2>{movie.title}</h2>
+    <div class="movie">
+        <div class="movie-info">
+            <table>
+                <tbody>
+                    <tr><th>タイトル：</th><td>{movie.title}{ movie.originalTitle ? `（原題：${movie.originalTitle}）` : null }</td></tr>
+                    <tr><th>国：</th><td>{movie.country}</td></tr>
+                    <tr><th>公開年：</th><td>{movie.releaseYear ?? "??"}年</td></tr>
+                    {
+                        roles.map(item => (
+                            <tr>
+                                <th>{item.role}：</th>
+                                <td><Fragment set:html={item.data.map(p => `<a href="/bibliographic/persons/${p.id}">${p.name}</a>`).join(" / ")} /></td>
+                            </tr>
+                        ))
+                    }
+                    {
+                        relatedLinks.length > 0 ?
+                        <tr><th>リンク：</th><td><Fragment set:html={relatedLinks.map(l => `<a href="${l.url}">${l.alt}</a>`).join("<br>")}/></td></tr> :
+                        null
+                    }
+                </tbody>
+            </table>
+        </div>
+        {
+            movie.description ?
+            <div class="text-content description">
+                <div class="text-content-label">備　考：</div>
+                <div class="text-content-data"><Fragment set:html={marked.parse(movie.description)} /></div>
+            </div> :
+            null
+        }
+        {
+            movie.note ?
+            <div class="text-content note">
+                <div class="text-content-label">Note：</div>
+                <div class="text-content-data"><Fragment set:html={marked.parse(movie.note)} /></div>
+            </div> :
+            null
+        }
+    </div>
+</BaseLayout>
+
+<style>
+    .banner {
+        margin-bottom: 1em;
+    }
+    .movie {
+        .movie-info {
+            display: flex;
+            align-items: flex-start;
+            gap: 1em;
+            margin-bottom: 1em;
+            table {
+                border-collapse: collapse;
+                width: unset;
+                font-size: unset;
+                th {
+                    font-weight: normal;
+                    text-align: left;
+                    vertical-align: top;
+                    width: 10em;
+                    padding: 0.2em;
+                }
+                td {
+                    vertical-align: top;
+                    padding: 0.2em;
+                    width: 40em;
+                    > p:first-child {
+                        margin-top: 0;
+                    }
+                }             
+                > tbody > tr:nth-child(even) {
+                    background-color: unset
+                }
+            }
+        }
+        .text-content {
+            > div.text-content-data {
+                margin-left: 1em;
+            }
+        }
+    }
+ </style>

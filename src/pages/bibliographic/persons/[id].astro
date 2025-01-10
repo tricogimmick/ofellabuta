@@ -5,6 +5,7 @@ import { marked } from 'marked';
 
 import type { PersonType } from '../../../types/person';
 import type { RelatedLinksType } from "../../../types/relatedLinks";
+import { number, string } from 'astro:schema';
 
 type ParamsType = {
     id: number;
@@ -29,6 +30,13 @@ type PrintType = {
     title: string;
     publisher: string;
     publicationDate: string;
+}
+type MovieType = {
+    id: number;
+    title: string;
+    originalTitle: string;
+    country: string;
+    releaseYear: string;
 }
 
 export async function getStaticPaths() {
@@ -89,6 +97,24 @@ function getPrints(db: sqlite3.Database, personId: number) {
     });
 }
 
+function getMovies(db: sqlite3.Database, personId: number) {
+    return new Promise<MovieType[]>((ok, ng) => {
+        db.all<MovieType>(
+            "SELECT DISTINCT m.id, m.title, m.originalTitle, m.country, m.releaseYear " +
+            "FROM movies as m " +
+            "LEFT JOIN related_persons as rp ON rp.relatedType = 'MOVIE' AND rp.relatedId = m.id " +
+            "WHERE rp.personId = ? ORDER BY m.releaseYear DESC", 
+            [personId], 
+            (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows || []);
+                }
+            });
+    });
+}
+
 function getRelatedLinks(db: sqlite3.Database, personId: number) {
     return new Promise<RelatedLinksType[]>((ok, ng) => {
         db.all<RelatedLinksType>(
@@ -112,6 +138,7 @@ const dbPath = import.meta.env.BIBLIODB_PATH;
 const db = new sqlite3.Database(dbPath);
 const works = await getWorks(db, id);
 const prints = await getPrints(db, id);
+const movies = await getMovies(db, id);
 const links = await getRelatedLinks(db, id);
 
 const portraitImage = links.find(x => x.linkType === 'IMG' && x.alt === '肖像');
@@ -150,6 +177,7 @@ const relatedLinks = links.filter(x => x.linkType === 'LINK');
         <div class="tab">
             <button id="works-tab" class="selected">作品リスト</button>
             <button id="prints-tab">書籍リスト</button>
+            <button id="movies-tab">映画リスト</button>
             <span>&nbsp;</span>
         </div>
         <div class="container works">
@@ -199,12 +227,37 @@ const relatedLinks = links.filter(x => x.linkType === 'LINK');
                 }
             </div>
         </div>
+        <div class="container movies" style="display: none;">
+            <div class="container-header">
+                <div class="container-row">
+                    <div class="container-cell">No</div>
+                    <div class="container-cell">タイトル</div>
+                    <div class="container-cell">国</div>
+                    <div class="container-cell">公開年</div>
+                </div>
+            </div>
+            <div class="contaner-body">
+                {
+                    movies.map((movie, idx) => (
+                        <div class={`container-row ${idx % 2 == 0 ? "even" : "odd"}`}>
+                            <div class="container-cell">{idx + 1}</div>
+                            <div class="container-cell">
+                                <a href={`/bibliographic/movies/${movie.id}`}>{movie.title}{movie.originalTitle ? `（${movie.originalTitle}）` : null}</a>
+                            </div>
+                            <div class="container-cell">{movie.country}</div>
+                            <div class="container-cell">{movie.releaseYear ?? "??"}年</div>
+                        </div>
+                    ))
+                }
+            </div>
+        </div>
     </div>
     <script>
         function openTab(tabName: string) {
             console.log(`openTab: ${tabName}`);
             const wokrs = document.querySelector('.container.works') as HTMLElement;
             const prints = document.querySelector('.container.prints') as HTMLElement;
+            const movies = document.querySelector('.container.movies') as HTMLElement;
             if (tabName === 'works') {
                 if (wokrs != null) { 
                     wokrs.style.display = 'block';
@@ -214,7 +267,11 @@ const relatedLinks = links.filter(x => x.linkType === 'LINK');
                     prints.style.display = 'none';
                     document.getElementById("prints-tab")?.classList.remove("selected");
                 }
-            } else {
+                if (movies != null) {
+                    movies.style.display = 'none';
+                    document.getElementById("movies-tab")?.classList.remove("selected");
+                }
+            } else if (tabName === 'prints'){
                 if (wokrs != null) { 
                     wokrs.style.display = 'none';
                     document.getElementById("works-tab")?.classList.remove("selected");
@@ -223,10 +280,28 @@ const relatedLinks = links.filter(x => x.linkType === 'LINK');
                     prints.style.display = 'block';
                     document.getElementById("prints-tab")?.classList.add("selected");
                 }
+                if (movies != null) {
+                    movies.style.display = 'none';
+                    document.getElementById("movies-tab")?.classList.remove("selected");
+                }
+            } else {
+                if (wokrs != null) { 
+                    wokrs.style.display = 'none';
+                    document.getElementById("works-tab")?.classList.remove("selected");
+                }
+                if (prints != null) {
+                    prints.style.display = 'none';
+                    document.getElementById("prints-tab")?.classList.remove("selected");
+                }
+                if (movies != null) {
+                    movies.style.display = 'block';
+                    document.getElementById("movies-tab")?.classList.add("selected");
+                }
             }
         }
         document.getElementById('works-tab')?.addEventListener('click', () => openTab('works'));
         document.getElementById('prints-tab')?.addEventListener('click', () => openTab('prints'));
+        document.getElementById('movies-tab')?.addEventListener('click', () => openTab('movies'));
     </script>
 </BaseLayout>
 

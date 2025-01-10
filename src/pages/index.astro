@@ -9,8 +9,6 @@ const pageTitle = "Top";
 
 const articles = await getCollection('articles');
 const article = articles[articles.length - 1];
-const prev = articles.length > 2 ? articles[articles.length - 2] : null;
-const next = null;
 
 ---
 <BaseLayout pageTitle={pageTitle} title={article.data.title} description={article.data.description}>

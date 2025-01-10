@@ -1,0 +1,68 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import sqlite3 from 'sqlite3';
+import type { MovieType } from '../../types/movie';
+
+function getMovies(db: sqlite3.Database) {
+    return new Promise<MovieType[]>((ok, ng) => {
+        db.all<MovieType>(
+            "SELECT * FROM movies WHERE viewingDate is not null or viewingDate <> '' ORDER BY viewingDate DESC", 
+            (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows);
+                }
+            }
+        );
+    });
+}
+
+const dbPath = import.meta.env.BIBLIODB_PATH;
+const db = new sqlite3.Database(dbPath);
+const movies = await getMovies(db);
+
+---
+<BaseLayout pageTitle="Movies I've seen">
+    <h2>Movies I've seen</h2>
+    <table>
+        <thead>
+            <tr><th>Title</th><th>制作年</th><th>視聴日</th></tr>
+        </thead>
+        <tbody>
+            {
+                movies.map((movie) => (
+                    <tr>
+                        <td><a href=`/bibliographic/movies/${movie.id}`>{movie.title}</a></td>
+                        <td>{movie.releaseYear}</td>
+                        <td>{movie.viewingDate}</td>
+                    </tr>
+                ))
+            }                    
+        </tbody>
+    </table>
+</BaseLayout>
+
+<style>
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 80%;
+        tbody tr {
+            border-bottom: 1px solid gray;
+        }
+        th, td {
+            padding: 0.5em;
+        }
+        th:nth-child(1) {
+            text-align: left;
+        }
+        h:nth-child(2), th:nth-child(3) {
+            width: 12em;
+        }
+        td:nth-child(2), td:nth-child(3) {
+            width: 12em;
+            text-align: center;
+        }
+    }
+</style>

@@ -105,7 +105,7 @@ const relatedLinks = links.filter(x => x.linkType === 'LINK');
 
 const breadcrumbList: BreadcrumbListType = {
     items: [
-        { name: "Movies I've seen", url: "/movies" },
+        { name: "Movies", url: "/movies" },
     ]
 };
 /*
@@ -135,6 +135,11 @@ stuffAndCasts.forEach(x => {
                     <tr><th>タイトル：</th><td>{movie.title}{ movie.originalTitle ? `（原題：${movie.originalTitle}）` : null }</td></tr>
                     <tr><th>国：</th><td>{movie.country}</td></tr>
                     <tr><th>公開年：</th><td>{movie.releaseYear ?? "??"}年</td></tr>
+                    {
+                        movie.viewingDate != null && movie.viewingDate != "" ?
+                        <tr><th>視聴：</th><td>{movie.viewingDate ?? "??"} - {movie.viewingMethod}</td></tr>
+                        : null
+                    }
                     {
                         roles.map(item => (
                             <tr>

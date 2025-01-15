@@ -23,8 +23,8 @@ const db = new sqlite3.Database(dbPath);
 const movies = await getMovies(db);
 
 ---
-<BaseLayout pageTitle="Movies I've seen">
-    <h2>Movies I've seen</h2>
+<BaseLayout pageTitle="Movies">
+    <h2>Movies</h2>
     <table>
         <thead>
             <tr><th>Title</th><th>制作年</th><th>視聴日</th></tr>

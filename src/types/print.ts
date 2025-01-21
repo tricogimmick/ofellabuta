@@ -8,6 +8,8 @@ export type PrintType = {
     publicationDate: string;
     issueNumber: number | null;
     seriesId: number | null;
+    purchaseDate: string;
+    finishedReadingDate: string;
     description: string;   
     toc: string;
     note: string;

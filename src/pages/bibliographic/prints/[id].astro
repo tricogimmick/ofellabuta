@@ -243,6 +243,8 @@ if (series) {
                     }
                     <tr><th>出版社：</th><td>{ brand ? `${publisher?.name}（${brand.name}）` : publisher?.name}</td></tr>
                     <tr><th>発行日：</th><td>{print.publicationDate}</td></tr>
+                    <tr><th>購入日：</th><td>{print.purchaseDate}</td></tr>
+                    <tr><th>読了日：</th><td>{print.finishedReadingDate}</td></tr>
                     <tr><th>管理番号：</th><td>{print.issueNumber}</td></tr>
                     {
                         workOfCover ?
@@ -392,9 +394,11 @@ if (series) {
                 }
                 .publish-type {
                     text-align: center;
+                    min-width: 4em;
                 }
                 .page-no {
                     text-align: right;
+                    min-width: 6em;
                 }
             }
         }

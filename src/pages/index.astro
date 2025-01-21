@@ -2,69 +2,136 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Article from '../components/Article.astro';
 import PageNavigater from '../components/PageNavigater.astro';
+import sqlite3 from 'sqlite3';
 
 import { getCollection } from 'astro:content';
 
+import type { MovieType } from '../types/movie';
+import type { PrintType } from '../types/print';
+
+function getRecentlyWatchedMovies(db: sqlite3.Database, row: Number) {
+    return new Promise<MovieType[]>((ok, ng) => {
+        db.all<MovieType>(
+            "SELECT * FROM movies WHERE viewingDate is not null and viewingDate <> '' ORDER BY viewingDate DESC LIMIT ?",
+            [ row ],
+            (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows);
+                }
+            }
+        );
+    });
+}
+
+function getRecentlyReadBooks(db: sqlite3.Database, row: Number) {
+    return new Promise<PrintType[]>((ok, ng) => {
+        db.all<PrintType>(
+            "SELECT * FROM prints WHERE finishedReadingDate is not null AND finishedReadingDate <> '' " +
+            " AND note is not null AND note <> '' " + 
+            "ORDER BY finishedReadingDate DESC LIMIT ?",
+            [ row ],
+            (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows);
+                }
+            }
+        );
+    });
+}
+
+
 const pageTitle = "Top";
 
-const articles = await getCollection('articles');
-const article = articles[articles.length - 1];
+const articles = (await getCollection('articles')).slice(-5).reverse();
+
+const dbPath = import.meta.env.BIBLIODB_PATH;
+const db = new sqlite3.Database(dbPath);
+const movies = await getRecentlyWatchedMovies(db, 5);
+const books = await getRecentlyReadBooks(db, 5);
+
 
 ---
-<BaseLayout pageTitle={pageTitle} title={article.data.title} description={article.data.description}>
-  <div class="container">
+<BaseLayout pageTitle={pageTitle} title="" description="">
+  <div class="banner">
     <img src="https://i.gyazo.com/c42ecba652a06ff21364aab646f04bda.png" alt="ofellabuta" >
+    <div>♥ in Butt</div>
   </div>
-  <h2>♥ in Butt</h2>
   <div class="container">
-    <div class="last-update">
-        <h4>Last update</h4>
-        <div>
-          <a href=`/archives/${article.slug}`>{article.data.title}</a><br>
-          <span class="created-at">{article.data.createdAt.toDateString()}</span>
-        </div>
+    <div class="column">
+        <h4>Recently Updated Contents</h4>
+        {
+          articles.map((article) => (
+          <div style="text-align: center;">
+            <a href=`/archives/${article.slug}`>{article.data.title}</a>
+            <span>({article.data.createdAt.toDateString()})</span>
+          </div>
+          ))
+        }
+    </div>
+  </div>
+  <div class="container">
+    <div class="column">
+      <h4>Recently Wached Movies</h4>
+      {
+        movies.map((movie) => (
+            <div>
+              <a href=`/bibliographic/movies/${movie.id}`>{movie.title}</a>
+              <span>({new Date(movie.viewingDate).toDateString()})</span>
+            </div>
+        ))
+      }                    
+    </div>
+    <div class="column">
+      <h4>Recently Read Books</h4>
+      {
+        books.map((book) => (
+            <div>
+              <a href=`/bibliographic/prints/${book.id}`>{book.title}</a>
+              <span>({new Date(book.finishedReadingDate).toDateString()})</span>
+            </div>
+        ))
+      }                    
     </div>
   </div>
 </BaseLayout>
 
 <style>
-  h2 {
+  .banner {
     text-align: center;
+    margin-bottom: 1em;
+    img {
+      max-width: 450px;
+    }
+    > div {
+      padding: 0.5em;
+      text-align: center;
+      font-size: 1.5em;
+      fonr-weight: bold;
+    }
   }
   .container {
     display: flex;
     justify-content: center;
-    img {
-      max-width: 450px;
-    }
-    > .links {
-      a {
-          display: block;
-          padding: 0.5em 1em;
-          border: 1px solid #202040;
-          text-align: center;
-          text-decoration: none;
-          font-weight: bold;
-          color: #020240;
-      }
-      a:hover {
-          color: #020240;
-          background-color: silver;
-      }
-      a:visited {
-          color: #020240;
-      }
-    }
-    > .last-update {
-      text-align: center;
+    gap: 1em;
+    margin-bottom: 1em;
+    .column {
+      margin: 0;
+      width: 500px;
       > h4 {
-        margin: 0.5em;
-        padding: 0;
+        margin: 0.5em 0;
+        text-align: center;
+        font-size: 1em;
+        font-weight: bold;
       }
       > div {
-        line-height: 1.5em;
-        .created-at {
-          font-size: 80%;
+        margin: 0 0.5em;
+        font-size: 75%;
+        > span {
+          font-size: 70%;
         }
       }
     }

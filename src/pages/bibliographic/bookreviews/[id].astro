@@ -1,0 +1,142 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import sqlite3 from 'sqlite3';
+
+import type { SeriesType } from '../../../types/series';
+import type { BookListType } from "../../../types/bookList";
+
+import BreadcrumbList, { type BreadcrumbListType } from "../../../components/BreadcrumbList.astro";
+import type { PublisherType } from "../../../types/publisher";
+
+type ParamsType = {
+    id: number;
+};
+type PropsType = {
+    series: SeriesType;
+};
+type GetStaticPathsType = {
+    params: ParamsType;
+    props: PropsType;
+};
+
+export async function getStaticPaths() {
+    const dbPath = import.meta.env.BIBLIODB_PATH;
+    return new Promise<GetStaticPathsType[]>((ok, ng) => {
+        const db = new sqlite3.Database(dbPath);
+        try {
+            db.all<SeriesType>("SELECT * FROM series WHERE bookReviewTarget = 1 ORDER BY id", [], (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows.map(x => ({
+                        params: { id: x.id ?? 0 },
+                        props: { series: x }
+                    })));
+                }
+            });
+        } finally {
+            db.close();
+        }
+    });
+}
+
+function getPublisher(db: sqlite3.Database, publisherId: number) {
+    return new Promise<PublisherType>((ok, ng) => {
+        db.get<PublisherType>("SELECT * FROM publishers WHERE id = ?", [publisherId], (err, row) => {
+            if (err) {
+                ng(err);
+            } else {
+                ok(row);
+            }
+        });
+    });
+}
+
+function getBookList(db: sqlite3.Database, seriesId: number) {
+    return new Promise<BookListType[]>((ok, ng) => {
+        db.all<BookListType>("SELECT * FROM book_lists WHERE datatype = 'review' AND seriesId = ? ORDER BY issue, id", [seriesId], (err, rows) => {
+            if (err) {
+                ng(err);
+            } else {
+                ok(rows);
+            }
+        });
+    });
+}
+
+const { id } = Astro.params;
+const { series } = Astro.props;
+
+const dbPath = import.meta.env.BIBLIODB_PATH;
+const db = new sqlite3.Database(dbPath);
+const publisher = series.publisherId != null ? await getPublisher(db, series.publisherId) : null;
+const _bookList = await getBookList(db, id);
+const bookList = new Map<string, BookListType[]>();
+_bookList.forEach(x => {
+    const key = x.issue ?? "";
+    if (!bookList.has(key)) {
+        bookList.set(key, []);
+    }
+    bookList.get(key)?.push(x);
+});
+const issues = [...bookList.keys()];
+
+const breadcrumbList: BreadcrumbListType = {
+    items: [
+        { name: "Bibliographic Data", url: "/bibliographic" }
+    ]
+};
+
+---
+<BaseLayout pageTitle={series.title}>
+    <BreadcrumbList {breadcrumbList} />
+    <h2>趣味の雑誌の書評欄で紹介された本のリスト</h2>
+    <h3>「{series.title}」({publisher?.name})</h3>
+    {
+        issues.map(x => (
+            <div class="issue">
+                <h4>{x}</h4>
+                <div>
+                    <table>
+                        <tbody>
+                            {
+                                bookList.get(x)?.map(y => (
+                                    <tr>
+                                        <td><a href={y.url}>{y.title}</a></td>
+                                        <td>{y.authors}</td>
+                                        <td>{y.publisher}</td>
+                                        <td>{y.description}</td>
+                                    </tr>
+                                ))
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        ))
+    }
+</BaseLayout>
+<style>
+    .issue {
+        margin-bottom: 2em;
+        h4 {
+            margin: 0.5em 0;
+            padding: 0;
+        }
+        table {
+            margin-left: 1em;
+            font-size: 70%;
+            > tbody > tr {
+                border-bottom: 1px solid #ccc;
+            }
+            > tbody > tr:nth-child(even) {
+                background-color: unset;
+            }
+            th:nth-child(1), td:nth-child(1) { width: 30%; }
+            th:nth-child(2), td:nth-child(2) { width: 20%; }
+            th:nth-child(3), td:nth-child(3) { width: 20%; }
+            th:nth-child(4), td:nth-child(4) { width: 30%; }
+        }
+    }
+ </style>

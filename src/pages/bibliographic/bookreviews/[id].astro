@@ -80,7 +80,23 @@ _bookList.forEach(x => {
     }
     bookList.get(key)?.push(x);
 });
-const issues = [...bookList.keys()];
+const issues = [...bookList.keys()].sort((a,b) => {
+    const matcha = a.match(/(\d+)[^\d]+(\d+)/);
+    const matchb = b.match(/(\d+)[^\d]+(\d+)/);
+    if (matcha && matchb) {
+        const a1 = parseInt(matcha[1]);
+        const a2 = parseInt(matcha[2]);
+        const b1 = parseInt(matchb[1]);
+        const b2 = parseInt(matchb[2]);
+        if (a1 === b1) {
+            return a2 - b2;
+        } else {
+            return a1 - b1;
+        }
+    } else {
+        return a.localeCompare(b);
+    }
+})
 
 const breadcrumbList: BreadcrumbListType = {
     items: [
@@ -91,8 +107,8 @@ const breadcrumbList: BreadcrumbListType = {
 ---
 <BaseLayout pageTitle={series.title}>
     <BreadcrumbList {breadcrumbList} />
-    <h2>趣味の雑誌の書評欄で紹介された本のリスト</h2>
-    <h3>「{series.title}」({publisher?.name})</h3>
+    <h2>【趣味の雑誌の書評欄で紹介された本のリスト】</h2>
+    <div class="magazine-title">「{series.title}」({publisher?.name})</div>
     {
         issues.map(x => (
             <div class="issue">
@@ -103,7 +119,7 @@ const breadcrumbList: BreadcrumbListType = {
                             {
                                 bookList.get(x)?.map(y => (
                                     <tr>
-                                        <td><a href={y.url}>{y.title}</a></td>
+                                        <td><a href={y.url} target="_blank">{y.title}</a></td>
                                         <td>{y.authors}</td>
                                         <td>{y.publisher}</td>
                                         <td>{y.description}</td>
@@ -118,10 +134,22 @@ const breadcrumbList: BreadcrumbListType = {
     }
 </BaseLayout>
 <style>
+    h2 {
+        font-size: 1em;
+        font-weight: bold;
+        margin: 0 0 0.5em 0;
+        padding: 0;
+    }
+    .magazine-title {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin: 0 0 1em 0;
+        padding: 0;
+    }
     .issue {
         margin-bottom: 2em;
         h4 {
-            margin: 0.5em 0;
+            margin: 0.5em 1em;
             padding: 0;
         }
         table {

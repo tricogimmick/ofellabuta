@@ -119,7 +119,7 @@ const breadcrumbList: BreadcrumbListType = {
                             {
                                 bookList.get(x)?.map(y => (
                                     <tr>
-                                        <td><a href={y.url} target="_blank">{y.title}</a></td>
+                                        <td>{ y.url ? <a href={y.url} target="_blank">{y.title}</a> : y.title }</td>
                                         <td>{y.authors}</td>
                                         <td>{y.publisher}</td>
                                         <td>{y.description}</td>

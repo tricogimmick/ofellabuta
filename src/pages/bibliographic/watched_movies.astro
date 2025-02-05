@@ -1,0 +1,48 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import sqlite3 from 'sqlite3';
+
+import type { MovieType } from '../../types/movie';
+
+function getRecentlyWatchedMovies(db: sqlite3.Database, row: Number) {
+    return new Promise<MovieType[]>((ok, ng) => {
+        db.all<MovieType>(
+            "SELECT * FROM movies WHERE viewingDate is not null and viewingDate <> '' ORDER BY viewingDate DESC LIMIT ?",
+            [ row ],
+            (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows);
+                }
+            }
+        );
+    });
+}
+
+const pageTitle = "最近観た映画";
+
+const dbPath = import.meta.env.BIBLIODB_PATH;
+const db = new sqlite3.Database(dbPath);
+const movies = await getRecentlyWatchedMovies(db, 20);
+
+---
+<BaseLayout pageTitle={pageTitle} title="最近観た映画" description="">
+    <h2>最近観た映画</h2>
+    <table>
+        <thead>
+            <tr><th>タイトル</th><th>鑑賞日</th></tr>
+        </thead>
+        <tbody>
+            {movies.map((movie) => (
+                <tr>
+                    <td><a href=`/bibliographic/movies/${movie.id}`>{movie.title}</a></td>
+                    <td>{movie.viewingDate}</td>
+                </tr>
+              ))}                    
+        </tbody>
+    </table>
+</BaseLayout>
+
+<style>
+</style>

@@ -1,0 +1,109 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import sqlite3 from 'sqlite3';
+
+import type { PrintType } from '../../types/print';
+import type { RelatedLinksType } from '../../types/relatedLinks';
+
+type ItemType = {
+    id: number;
+    title: string;
+    purchaseDate: string;
+    url: string;
+    coverImage: string;
+}
+
+function getBoughtBooks(db: sqlite3.Database, row: Number) {
+    return new Promise<PrintType[]>((ok, ng) => {
+        db.all<PrintType>(
+            "SELECT * FROM prints WHERE purchaseDate is not null AND purchaseDate <> '' " +
+            "AND printType = '書籍' " +
+            "ORDER BY purchaseDate DESC LIMIT ?",
+            [ row ],
+            (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows);
+                }
+            }
+        );
+    });
+}
+
+function getCoverImage(db: sqlite3.Database, printId: number) {
+    return new Promise<RelatedLinksType|null>((ok, ng) => {
+        db.get<RelatedLinksType>(
+            "SELECT * FROM related_links WHERE relatedType = 'PRINT' AND linkType = 'IMG' AND alt = '表紙' AND relatedId = ?",
+            [printId],
+            (err, row) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(row || null);
+                }
+            });
+    });
+}
+
+const pageTitle = "最近買った本";
+
+const dbPath = import.meta.env.BIBLIODB_PATH;
+const db = new sqlite3.Database(dbPath);
+const books = await getBoughtBooks(db, 12);
+const items: ItemType[] = [];
+for (const book of books) {
+    const coverImage = await getCoverImage(db, book.id as number);
+    items.push({
+        id: book.id as number,
+        title: book.title,
+        purchaseDate: book.purchaseDate,
+        url: `/bibliographic/prints/${book.id}`,
+        coverImage: coverImage ? coverImage.url : ''
+    });
+}
+
+
+---
+<BaseLayout pageTitle={pageTitle} title="最近買った本" description="">
+    <h2>最近買った本</h2>
+    <div class="container">
+      {
+        items.map((item) => (
+            <div class="item">
+                <a href={item.url}>
+                    <img src={item.coverImage} alt={item.title} /><br>
+                    <div class="title">{item.title}</div>
+                </a>
+                <div class="finished-reading-date">{item.purchaseDate}</div>
+            </div>
+        ))
+      }                    
+    </div>
+</BaseLayout>
+
+<style>
+    .container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        gap: 1rem;
+        > .item {
+            width: 200px;
+            padding: 0;
+            margin: 0;
+            > a {
+                margin: 0;
+                padding: 0;
+                display: block;
+                width: 100%;
+                text-decoration: none;
+                > img {
+                    width: 100%;
+                    height: 300px;
+                    object-fit: contain;
+                }
+            } 
+        }
+    }
+</style>

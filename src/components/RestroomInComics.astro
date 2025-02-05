@@ -1,0 +1,73 @@
+---
+import type { CollectionEntry } from 'astro:content';
+interface Props {
+  restroomInComic: CollectionEntry<'restroom_in_comics'>;
+}
+const { restroomInComic } = Astro.props;
+const { Content } = await restroomInComic.render();
+
+---
+
+<div class="restroom-in-comics">
+    <h2>マンガの中のトイレ</h2>
+    <h3>{restroomInComic.data.title}</h3>
+    <div class="created-at">{restroomInComic.data.createdAt.toDateString()}</div>
+    <div class="restroom-in-comics-content">
+      <Content></Content>
+    </div>
+    <div class="restroom-in-comics-info">
+        <div class="source">Source : 「{restroomInComic.data.title}」{restroomInComic.data.author} ({restroomInComic.data.media})</div>
+    </div>
+  </div>
+  <script>
+    document.querySelector(".restroom-in-comics > h2")?.addEventListener("click", function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      document.location.href = "/restroom_in_comics";
+    })
+  </script>
+
+  <style>
+    .restroom-in-comics {
+      h2 {
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        text-transform:capitalize;
+        cursor: pointer;
+      }
+      h3 {
+        font-size: 18px;
+        font-weight: bold;
+        text-align: center;
+        text-transform:capitalize;
+      }
+      .created-at {
+        margin-top: -1em;
+        padding-right: 2em;
+        font-size: 80%;
+        text-align: right;
+      }
+      .restroom-in-comics-content {
+        padding: 0 1em;
+        line-height: 1.4em;
+        font-family: serif;
+        font-size: 1.5em;
+        > p:has(>img) {
+          text-align: center;
+        } 
+        img {
+          width: unset;
+          max-width: 80%;
+        }
+      }
+      .restroom-in-comics-info {
+        padding-top: 1em;
+        margin-bottom: 1em;
+        .source {
+          text-align: right;
+          margin-bottom: 1rem;
+        }
+      }
+    }
+  </style>

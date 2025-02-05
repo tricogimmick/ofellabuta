@@ -20,7 +20,19 @@ const quotesCollection = defineCollection({
   }),
 });
 
+const restroomInComicsCollection = defineCollection({ 
+  type: 'content', // v2.5.0以降
+  schema: z.object({
+    title: z.string(),
+    author: z.string(),
+    media: z.string(),
+    createdAt: z.date(),
+    description: z.string(),
+  }),
+});
+
 export const collections = {
   'articles': articlesCollection,
   'quotes': quotesCollection,
+  'restroom_in_comics': restroomInComicsCollection
 };

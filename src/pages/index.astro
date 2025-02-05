@@ -2,56 +2,15 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Article from '../components/Article.astro';
 import PageNavigater from '../components/PageNavigater.astro';
-import sqlite3 from 'sqlite3';
 
 import { getCollection } from 'astro:content';
 
-import type { MovieType } from '../types/movie';
-import type { PrintType } from '../types/print';
-
-function getRecentlyWatchedMovies(db: sqlite3.Database, row: Number) {
-    return new Promise<MovieType[]>((ok, ng) => {
-        db.all<MovieType>(
-            "SELECT * FROM movies WHERE viewingDate is not null and viewingDate <> '' ORDER BY viewingDate DESC LIMIT ?",
-            [ row ],
-            (err, rows) => {
-                if (err) {
-                    ng(err);
-                } else {
-                    ok(rows);
-                }
-            }
-        );
-    });
-}
-
-function getRecentlyReadBooks(db: sqlite3.Database, row: Number) {
-    return new Promise<PrintType[]>((ok, ng) => {
-        db.all<PrintType>(
-            "SELECT * FROM prints WHERE finishedReadingDate is not null AND finishedReadingDate <> '' " +
-            " AND note is not null AND note <> '' " + 
-            "ORDER BY finishedReadingDate DESC LIMIT ?",
-            [ row ],
-            (err, rows) => {
-                if (err) {
-                    ng(err);
-                } else {
-                    ok(rows);
-                }
-            }
-        );
-    });
-}
 
 
 const pageTitle = "Top";
 
 const articles = (await getCollection('articles')).slice(-5).reverse();
 
-const dbPath = import.meta.env.BIBLIODB_PATH;
-const db = new sqlite3.Database(dbPath);
-const movies = await getRecentlyWatchedMovies(db, 5);
-const books = await getRecentlyReadBooks(db, 5);
 
 
 ---
@@ -74,28 +33,16 @@ const books = await getRecentlyReadBooks(db, 5);
     </div>
   </div>
   <div class="container">
-    <div class="column">
-      <h4>Recently Wached Movies</h4>
-      {
-        movies.map((movie) => (
-            <div>
-              <a href=`/bibliographic/movies/${movie.id}`>{movie.title}</a>
-              <span>({new Date(movie.viewingDate).toDateString()})</span>
-            </div>
-        ))
-      }                    
-    </div>
-    <div class="column">
-      <h4>Recently Read Books</h4>
-      {
-        books.map((book) => (
-            <div>
-              <a href=`/bibliographic/prints/${book.id}`>{book.title}</a>
-              <span>({new Date(book.finishedReadingDate).toDateString()})</span>
-            </div>
-        ))
-      }                    
-    </div>
+    <ul class="menu">
+      <li><a href="/bibliographic/bought_books">最近買った本</a></li>
+      <li><a href="/bibliographic/finished_reading">最近読んだ本</a></li>
+      <li><a href="/bibliographic/watched_movies">最近観た映画</a></li>
+    </ul>    
+  </div>
+  <div class="container">
+    <ul class="menu">
+      <li><a href="/restroom_in_comics">マンガの中のトイレ</a></li>
+    </ul>    
   </div>
 </BaseLayout>
 
@@ -132,6 +79,20 @@ const books = await getRecentlyReadBooks(db, 5);
         font-size: 75%;
         > span {
           font-size: 70%;
+        }
+      }
+    }
+    ul {
+      list-style-type: none;
+      display: flex;
+      padding: 0;
+      margin: 0;
+      gap: 2em;
+      li {
+        a {
+          text-decoration: none;
+          &:hover {
+          }
         }
       }
     }

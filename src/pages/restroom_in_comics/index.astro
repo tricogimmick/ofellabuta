@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const restroomInComics = await getCollection('restroom_in_comics');
+
+const pageTitle = "Index";
+---
+<BaseLayout pageTitle={pageTitle}>
+    <h2>マンガの中のトイレ</h2>
+    <p>
+        マンガに限らずフィクション作品の中で、人間の生活で欠かせない行為であるにも関わらずあまり描かれることのないトイレ中のシーン。マンガの中でトイレがどのように描かれているのか、作中に登場するトイレのシーンを集めている。
+    </p>
+    <table>
+        <thead>
+            <tr><th>Title</th><th>Created at</th></tr>
+        </thead>
+        <tbody>
+            {restroomInComics.map((article) => (
+                <tr><td><a href=`/restroom_in_comics/${article.slug}`>{article.data.title} {article.data.author}</a></td><td>{article.data.createdAt.toDateString()}</td></tr>
+              ))}                    
+        </tbody>
+    </table>
+</BaseLayout>
+
+<style>
+    h2 {
+        text-align: center;
+    }
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 80%;
+        tbody tr {
+            border-bottom: 1px solid gray;
+        }
+        th, td {
+            padding: 0.5em;
+        }
+    }
+    th:last-child {
+        width: 200px;
+    }
+    td:last-child {
+        text-align: center;
+    }
+</style>

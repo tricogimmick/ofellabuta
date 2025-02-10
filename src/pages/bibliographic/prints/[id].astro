@@ -218,13 +218,17 @@ if (series) {
 
 ---
 <BaseLayout pageTitle={title}>
-    <BreadcrumbList {breadcrumbList} />
-    <h2>{title}</h2>
+    <ul class="menu">
+        <li><a href="/bibliographic/bought_books">最近買った本</a></li>
+        <li><a href="/bibliographic/finished_reading">最近読んだ本</a></li>
+        <li><a href="/bibliographic/watched_movies">最近観た映画</a></li>
+    </ul>          
     {
         bannerImage ?
         <div class="banner"><img src={bannerImage.url} alt={bannerImage.alt} /></div> :
         null
     }
+    <h2>{title}</h2>
     <div class="print">
         <div class="print-info">
             {
@@ -335,6 +339,33 @@ if (series) {
 </BaseLayout>
 
 <style>
+    ul.menu {
+        list-style-type: none;
+        display: flex;
+        justify-content: center;
+        padding: 0;
+        margin: 0 0 2em 0;
+        gap: 2em;
+        li {
+            display: block;
+            margin: 0;
+            padding: 0;
+            a {
+                display: block;
+                width: 150px;
+                border: 1px solid #202040;
+                margin: 0;
+                padding: 0.2em;
+                text-align: center;
+                text-decoration: none;
+                color: #020240;
+                &:hover {
+                    color: #020240;
+                    background-color: silver;
+                }
+            }
+        }
+    }
     .banner {
         margin-bottom: 1em;
     }

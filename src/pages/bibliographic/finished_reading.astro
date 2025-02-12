@@ -50,7 +50,7 @@ const pageTitle = "最近読んだ本";
 
 const dbPath = import.meta.env.BIBLIODB_PATH;
 const db = new sqlite3.Database(dbPath);
-const books = await getFinishedReading(db, 12);
+const books = await getFinishedReading(db, 20);
 const items: ItemType[] = [];
 for (const book of books) {
     const coverImage = await getCoverImage(db, book.id as number);

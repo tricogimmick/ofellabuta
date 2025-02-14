@@ -1,0 +1,47 @@
+---
+interface Props {
+    currentPage: string;
+};
+const { currentPage } = Astro.props;
+---
+<menu>
+    <li><a href="/bibliographic/bought_books" class={ currentPage === "bought_books" ? "current" : null} >最近買った本</a></li>
+    <li><a href="/bibliographic/finished_reading" class={ currentPage === "finished_reading" ? "current" : null} >最近読んだ本</a></li>
+    <li><a href="/bibliographic/watched_movies" class={ currentPage === "watched_movies" ? "current" : null} >最近観た映画</a></li>
+</menu>          
+
+<style>
+    menu {
+        list-style-type: none;
+        display: flex;
+        justify-content: center;
+        padding: 0;
+        margin: 0 0 2em 0;
+        gap: 2em;
+        li {
+            display: block;
+            margin: 0;
+            padding: 0;
+            a {
+                display: block;
+                width: 200px;
+                border: 1px solid #202040;
+                margin: 0;
+                padding: 0.5em;
+                text-align: center;
+                text-decoration: none;
+                color: #020240;
+                &:hover {
+                    color: #020240;
+                    background-color: silver;
+                }
+            }
+            a.current {
+                color: white;
+                background-color: #202040;
+                cursor: default;
+                font-weight: bold;
+            }
+        }
+    }
+</style>

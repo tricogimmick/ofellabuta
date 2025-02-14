@@ -11,7 +11,7 @@ import type { BrandType } from "../../../types/brand";
 import type { RelatedLinksType } from "../../../types/relatedLinks";
 
 import { magazineData } from '../../../scripts/lib.ts'
-import BreadcrumbList, { type BreadcrumbListType } from "../../../components/BreadcrumbList.astro";
+import BibliographicMenu from '../../../components/BibliographicMenu.astro';
 
 type ParamsType = {
     id: number;
@@ -218,11 +218,7 @@ if (series) {
 
 ---
 <BaseLayout pageTitle={title}>
-    <ul class="menu">
-        <li><a href="/bibliographic/bought_books">最近買った本</a></li>
-        <li><a href="/bibliographic/finished_reading">最近読んだ本</a></li>
-        <li><a href="/bibliographic/watched_movies">最近観た映画</a></li>
-    </ul>          
+    <BibliographicMenu currentPage="" />
     {
         bannerImage ?
         <div class="banner"><img src={bannerImage.url} alt={bannerImage.alt} /></div> :
@@ -339,33 +335,6 @@ if (series) {
 </BaseLayout>
 
 <style>
-    ul.menu {
-        list-style-type: none;
-        display: flex;
-        justify-content: center;
-        padding: 0;
-        margin: 0 0 2em 0;
-        gap: 2em;
-        li {
-            display: block;
-            margin: 0;
-            padding: 0;
-            a {
-                display: block;
-                width: 150px;
-                border: 1px solid #202040;
-                margin: 0;
-                padding: 0.2em;
-                text-align: center;
-                text-decoration: none;
-                color: #020240;
-                &:hover {
-                    color: #020240;
-                    background-color: silver;
-                }
-            }
-        }
-    }
     .banner {
         margin-bottom: 1em;
     }

@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import sqlite3 from 'sqlite3';
+import BibliographicMenu from '../../components/BibliographicMenu.astro';
 
 import type { PrintType } from '../../types/print';
 import type { RelatedLinksType } from '../../types/relatedLinks';
@@ -66,7 +67,7 @@ for (const book of books) {
 
 ---
 <BaseLayout pageTitle={pageTitle} title="最近読んだ本" description="">
-    <h2>最近読んだ本</h2>
+    <BibliographicMenu currentPage="finished_reading" />
     <div class="container">
       {
         items.map((item) => (
@@ -75,7 +76,7 @@ for (const book of books) {
                     <img src={item.coverImage} alt={item.title} /><br>
                     <div class="title">{item.title}</div>
                 </a>
-                <div class="finished-reading-date">{item.finishedReadingDate}</div>
+                <div>{item.finishedReadingDate}</div>
             </div>
         ))
       }                    

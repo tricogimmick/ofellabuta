@@ -5,12 +5,12 @@ const quotes = await getCollection('quotes');
 ---
 <nav>
     <input type="hidden" id="quote-ids" value={quotes.map(quote => quote.slug).join(',')} />
-    <ol>
+    <menu>
         <li><a href="/">Home</a></li>
         <li><a href="/archives">Archives</a></li>
         <li><a id="quote-link" href="/quotes">Quotes</a></li>
         <li><a href="/bibliographic">Bibliographic Data</a></li>
-    </ol>
+    </menu>
     <script>
         document.getElementById('quote-link')?.addEventListener('click', (e) => {
             e.preventDefault();
@@ -25,7 +25,7 @@ const quotes = await getCollection('quotes');
     nav {
         font-size: 80%;
         padding: 0;
-        ol {
+        menu {
             list-style: none;
             display: flex;
             justify-content: center;

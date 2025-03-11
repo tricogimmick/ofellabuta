@@ -16,7 +16,7 @@ const { Content } = await restroomInComic.render();
       <Content></Content>
     </div>
     <div class="restroom-in-comics-info">
-        <div class="source">Source : 「{restroomInComic.data.title}」{restroomInComic.data.author} ({restroomInComic.data.media})</div>
+        <div class="source">出典:「{restroomInComic.data.title}」{restroomInComic.data.author} ({restroomInComic.data.media})</div>
     </div>
   </div>
   <script>
@@ -65,7 +65,8 @@ const { Content } = await restroomInComic.render();
         padding-top: 1em;
         margin-bottom: 1em;
         .source {
-          text-align: right;
+          text-align: center;
+          font-size: 0.8vw;
           margin-bottom: 1rem;
         }
       }

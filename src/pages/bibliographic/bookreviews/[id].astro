@@ -98,17 +98,19 @@ const issues = [...bookList.keys()].sort((a,b) => {
     }
 })
 
-const breadcrumbList: BreadcrumbListType = {
-    items: [
-        { name: "Bibliographic Data", url: "/bibliographic" }
-    ]
-};
-
 ---
 <BaseLayout pageTitle={series.title}>
-    <BreadcrumbList {breadcrumbList} />
-    <h2>【趣味の雑誌の書評欄で紹介された本のリスト】</h2>
-    <div class="magazine-title">「{series.title}」({publisher?.name})</div>
+    <h2>【<a href="../reviews">趣味の雑誌の書評欄で紹介された本のリスト</a>】</h2>
+    <div class="magazine-title">「{series.title}」</div>
+    <div class="publisher">
+    {
+        publisher ? (
+            <span>出版社：<a href={`/bibliographic/publishers/${publisher.id}`}>{publisher.name}</a></span>
+        ) : (
+            <span>出版社：不明</span>
+        )
+    }
+    </div>
     {
         issues.map(x => (
             <div class="issue">
@@ -137,14 +139,17 @@ const breadcrumbList: BreadcrumbListType = {
     h2 {
         font-size: 1em;
         font-weight: bold;
-        margin: 0 0 0.5em 0;
+        margin: 0 0 2em 0;
         padding: 0;
     }
     .magazine-title {
-        font-size: 1.2em;
+        font-size: 150%;
         font-weight: bold;
-        margin: 0 0 1em 0;
-        padding: 0;
+        padding: 0;text-align: center;
+    }
+    .publisher {
+        text-align: right;
+        font-size: 80%;
     }
     .issue {
         margin-bottom: 2em;

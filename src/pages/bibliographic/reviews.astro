@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { magazineData } from '../../scripts/lib.ts'
+import sqlite3 from 'sqlite3';
+
+type reviewType = {
+    id: number;
+    title: string;
+}
+
+function getReview(db: sqlite3.Database) {
+    return new Promise<reviewType[]>((ok, ng) => {
+        db.all<reviewType>("SELECT id, title FROM series WHERE bookReviewTarget = 1 ORDER BY id", [], (err, rows) => {
+            if (err) {
+                ng(err);
+            } else {
+                ok(rows);
+            }
+        });
+    });
+}
+
+const dbPath = import.meta.env.BIBLIODB_PATH;
+const db = new sqlite3.Database(dbPath);
+const reviews = await getReview(db);
+
+
+---
+<BaseLayout pageTitle="趣味の雑誌の書評欄で紹介された本のリスト">
+    <h2>趣味の雑誌の書評欄で紹介された本のリスト</h2>
+    <div class="magazine-list">
+        {
+        reviews.map((review) => (
+            <div class="item">
+                <a href={`/bibliographic/bookreviews/${review.id}`}>{review.title}</a>
+            </div>
+        ))
+        }
+    </div>
+</BaseLayout>
+
+<style>
+    h2 {
+        text-align: center;
+    }
+    .magazine-list {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5em;
+    }
+</style>

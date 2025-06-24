@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { magazineData } from '../../scripts/lib.ts'
+import sqlite3 from 'sqlite3';
+
+---
+<BaseLayout pageTitle="Bibliograpohic Data">
+    <h2>Comic Magazine Data</h2>
+    <div class="magazine-list">
+    {
+        magazineData.map((mag) => (
+            <div class="item">
+                <a href={`/bibliographic/series/${mag.id}`}>{mag.title}</a>
+            </div>
+        ))  
+    }    
+    </div>
+</BaseLayout>
+
+<style>
+    h2 {
+        text-align: center;
+    }
+    .magazine-list {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5em;
+    }
+ </style>

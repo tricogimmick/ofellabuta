@@ -3,7 +3,6 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 import sqlite3 from 'sqlite3';
 import { marked } from 'marked';
 
-import BreadcrumbList, { type BreadcrumbListType } from '../../../components/BreadcrumbList.astro';
 import { magazineData } from '../../../scripts/lib.ts'
 import type { SeriesType } from '../../../types/series';
 import type { PublisherType } from '../../../types/publisher';
@@ -87,11 +86,6 @@ const publisher = series.publisherId != null ? await getPublisher(db, series.pub
 const issues = await getIssues(db, id); 
 let years = null;
 
-const breadcrumbList : BreadcrumbListType = {
-    items: [
-      { name: "Bibliographic Data", url: "/bibliographic" }
-    ]
-};
 if (magazineData.find(x => x.id == series.id)) {
   years = issues.reduce((acc, issue) => acc.includes(String(issue.issueNumber).substring(0,4)) ? acc : [...acc, String(issue.issueNumber).substring(0,4)], [] as string[]);
 }
@@ -100,7 +94,6 @@ const descHtml = series.description != null && series.description != "" ? marked
 
 ---
 <BaseLayout pageTitle={series.title}>
-  <BreadcrumbList {breadcrumbList} />
   <h2>{series.title}</h2>
   {
     publisher ?
@@ -154,6 +147,9 @@ const descHtml = series.description != null && series.description != "" ? marked
 </BaseLayout>
 
 <style>
+  h2 {
+    text-align: center;
+  }
   .series-info {
     table {
       font-size: unset;
@@ -163,7 +159,6 @@ const descHtml = series.description != null && series.description != "" ? marked
           font-weight: normal;
           text-align: left;
           vertical-align: top;
-          width: 6em;
           padding: 0.2em;
       }
       td {
@@ -186,6 +181,7 @@ const descHtml = series.description != null && series.description != "" ? marked
       display: flex;
       flex-wrap: wrap;
       gap: 1em;
+      justify-content: center;
       .issue {
         > a {
           text-decoration: none;

@@ -205,16 +205,14 @@ const bannerImage = links.find(x => x.linkType === 'IMG' && x.alt === 'バナー
 const coverImage = links.find(x => x.linkType === 'IMG' && x.alt === '表紙');
 const relatedLinks = links.filter(x => x.linkType === 'LINK');
 
-const magData = magazineData.find(x => x.id === print.seriesId);
-
-const breadcrumbList: BreadcrumbListType = {
-    items: [
-        { name: "Bibliographic Data", url: "/bibliographic" },
-    ]
-};
-if (series) {
-    breadcrumbList.items.push({name: series?.title ?? "", url: `/bibliographic/series/${series.id}`});
-}
+const roles = new Map<string, AuthorType[]>();
+authors.forEach(a => {
+    if (roles.has(a.role)) {
+        roles.get(a.role)?.push(a);
+    } else {
+        roles.set(a.role, [a]);
+    }
+});
 
 ---
 <BaseLayout pageTitle={title}>
@@ -237,9 +235,12 @@ if (series) {
                     <tr><th>タイトル：</th><td>{title}</td></tr>
                     <tr><th>出版種別：</th><td>{print.printType}</td></tr>
                     {
-                        authors.map((author, index) => (
-                            <tr><th>{author.role}：</th><td><a href={`/bibliographic/persons/${author.id}`}>{author.name}</a></td></tr>
-                        ))
+                        roles.keys().map(role => {
+                            const links = roles.get(role)?.map(author => `<a href="/bibliographic/persons/${author.id}">${author.name}</a>`).join(" / ");
+                            return (
+                                <tr><th>{role}：</th><td set:html={links} /></tr>
+                            );
+                        })
                     }
                     <tr><th>出版社：</th><td>{ brand ? `${publisher?.name}（${brand.name}）` : publisher?.name}</td></tr>
                     <tr><th>発行日：</th><td>{print.publicationDate}</td></tr>

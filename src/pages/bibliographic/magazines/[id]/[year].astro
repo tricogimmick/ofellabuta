@@ -1,0 +1,217 @@
+---
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import sqlite3 from 'sqlite3';
+import { marked } from 'marked';
+
+import { magazineData } from '../../../../scripts/lib.ts'
+import type { SeriesType } from '../../../../types/series';
+import type { PublisherType } from '../../../../types/publisher';
+
+type ParamsType = {
+    id: number;
+    year: number;
+};
+type PropsType = {
+    series: SeriesType;
+};
+type GetStaticPathsType = {
+    params: ParamsType;
+    props: PropsType;
+};
+
+type IssueType = {
+    id: number;
+    title: string;
+    url: string;
+    issueNumber: number;
+}
+
+
+export async function getStaticPaths() {
+    const dbPath = import.meta.env.BIBLIODB_PATH;
+    return new Promise<GetStaticPathsType[]>((ok, ng) => {
+        const db = new sqlite3.Database(dbPath);
+        try {
+            db.all<SeriesType>("SELECT * FROM series ORDER BY id", [], (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok([...rows.filter(x => magazineData.find(m => m.id === x.id) != null).map(x => ({
+                            params: { id: x.id ?? 0 , year: 2025 },
+                            props: { series: x }
+                        })),
+                        ...rows.filter(x => magazineData.find(m => m.id === x.id) != null).map(x => ({
+                            params: { id: x.id ?? 0 , year: 2026 },
+                            props: { series: x }
+                        }))
+                    ]);
+                }
+            });
+        } finally {
+            db.close();
+        }
+    });
+}
+
+function getPublisher(db: sqlite3.Database, publisherId: number) {
+    return new Promise<PublisherType>((ok, ng) => {
+        db.get<PublisherType>("SELECT * FROM publishers WHERE id = ?", [publisherId], (err, row) => {
+            if (err) {
+                ng(err);
+            } else {
+                ok(row);
+            }
+        });
+    });
+}
+
+function getIssues(db: sqlite3.Database, seriesId: number, year?: number) {
+    return new Promise<IssueType[]>((ok, ng) => {
+        const minIssueNumber = year != null ? year * 100 : 0;
+        const maxIssueNumber = year != null ? year * 100 + 99 : 999999;
+        db.all<IssueType>(
+            "SELECT p.id, p.title, rl.url, p.issueNumber " +
+            "FROM prints as p "  +
+            "LEFT JOIN related_links as rl ON rl.relatedType = 'PRINT' and rl.relatedId = p.id AND rl.linkType = 'IMG' AND rl.alt = '表紙'" +
+            "WHERE p.seriesid = ? AND p.issueNumber BETWEEN ? AND ? ORDER BY p.issueNumber", 
+            [seriesId, minIssueNumber, maxIssueNumber], 
+            (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows || []);
+                }
+            });
+    });
+}
+
+const { id, year } = Astro.params;
+const { series } = Astro.props;
+
+const dbPath = import.meta.env.BIBLIODB_PATH;
+const db = new sqlite3.Database(dbPath);
+const publisher = series.publisherId != null ? await getPublisher(db, series.publisherId as number) : null;
+const issues = await getIssues(db, id, year); 
+
+const descHtml = series.description != null && series.description != "" ? marked.parse(series.description) : "";
+
+---
+<BaseLayout pageTitle={series.title}>
+  <div class="navi"><a href="/bibliographic/magazines">Comic Magazine Data</a></div>
+  <h2>{series.title} （{publisher?.name}）</h2>
+  {
+    series.description != null && series.description != "" ?
+    <div class="text-content description">
+        <div class="text-content-label">備考：</div>
+        <div class="text-content-data"><Fragment set:html={marked.parse(series.description)} /></div>
+    </div> :
+    null
+  }
+  <h4>
+    発行年：
+    {[2025, 2026].map((y) => (
+        y == year ? 
+        <span class="current-year">{y}年</span> :
+        <span><a href={`/bibliographic/magazines/${id}/${y}`}>{y}年</a></span>
+    ))
+    }
+  </h4>
+  {
+    <div class="issues">
+      {
+        issues.map((issue) => (
+            <div class="issue">
+              <a href={`/bibliographic/prints/${issue.id}`}>
+                {
+                  issue.url != null && issue.url != "" ?  <img src={issue.url} /> : <span class="no-image">NO IMAGE</span>
+                }
+              </a>
+              <div class="title"><a href={`/bibliographic/prints/${issue.id}`}>{issue.title}</a></div>
+            </div>
+        ))
+      }
+    </div>
+  }
+</BaseLayout>
+
+<style>
+    .navi {
+        text-align: right;
+    }
+  h2 {
+    text-align: center;
+  }
+  h4 { 
+    text-align: center;
+    > span {
+        margin: 0 1em;
+    }
+    > span:not(:last-child)::after {
+        content: "/";
+        margin-left: 1em;
+    }
+    .current-year {
+        font-weight: bold;
+        color: red;
+    }
+  }
+  .series-info {
+    table {
+      font-size: unset;
+      border-collapse: collapse;
+      width: unset;
+      th {
+          font-weight: normal;
+          text-align: left;
+          vertical-align: top;
+          padding: 0.2em;
+      }
+      td {
+          width: 40em;
+          vertical-align: top;
+          padding: 0.2em;
+      }             
+      > tbody > tr:nth-child(even) {
+          background-color: unset
+      }
+    }
+  }
+  .text-content {
+    padding: 0.2em;
+    > div.text-content-data {
+        margin-left: 1em;
+    } 
+  }
+  .issues {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1em;
+      justify-content: center;
+      .issue {
+        > a {
+          text-decoration: none;
+        }
+          img {
+              width: 150px;
+              height: 214px;
+          }
+          .no-image {
+              display: grid;
+              width: 150px;
+              height: 214px;
+              border: 1px solid gray;
+              background-color: silver;
+              place-items: center;
+              margin-bottom: 0.5em;
+              font-size: 12px;
+              font-weight: bold;
+
+          }
+          .title {
+              font-size: 12px;
+              line-height: 12px;
+              text-align: center;
+          }
+      }
+  }
+</style>

@@ -1,16 +1,16 @@
 ---
 import type { GetStaticPaths } from "astro";
-import BaseLayout from '../../../layouts/BaseLayout.astro';
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
 import sqlite3 from 'sqlite3';
 
-import type { SeriesType } from '../../../types/series';
-import type { BookListType } from "../../../types/bookList";
+import type { SeriesType } from '../../../../types/series';
+import type { BookListType } from "../../../../types/bookList";
 
-import BreadcrumbList, { type BreadcrumbListType } from "../../../components/BreadcrumbList.astro";
-import type { PublisherType } from "../../../types/publisher";
+import type { PublisherType } from "../../../../types/publisher";
 
 type ParamsType = {
     id: number;
+    year: number;
 };
 type PropsType = {
     series: SeriesType;
@@ -29,10 +29,16 @@ export async function getStaticPaths() {
                 if (err) {
                     ng(err);
                 } else {
-                    ok(rows.map(x => ({
-                        params: { id: x.id ?? 0 },
-                        props: { series: x }
-                    })));
+                    ok([
+                        ...rows.map(x => ({
+                            params: { id: x.id ?? 0, year: 2025 },
+                            props: { series: x }
+                        })),
+                        ...rows.map(x => ({
+                            params: { id: x.id ?? 0, year: 2026 },
+                            props: { series: x }
+                        })) 
+                    ]);
                 }
             });
         } finally {
@@ -53,9 +59,9 @@ function getPublisher(db: sqlite3.Database, publisherId: number) {
     });
 }
 
-function getBookList(db: sqlite3.Database, seriesId: number) {
+function getBookList(db: sqlite3.Database, seriesId: number, year: number) {
     return new Promise<BookListType[]>((ok, ng) => {
-        db.all<BookListType>("SELECT * FROM book_lists WHERE datatype = 'review' AND seriesId = ? ORDER BY issue, id", [seriesId], (err, rows) => {
+        db.all<BookListType>("SELECT * FROM book_lists WHERE datatype = 'review' AND seriesId = ? AND year = ? ORDER BY issue, id", [seriesId, year], (err, rows) => {
             if (err) {
                 ng(err);
             } else {
@@ -65,13 +71,13 @@ function getBookList(db: sqlite3.Database, seriesId: number) {
     });
 }
 
-const { id } = Astro.params;
+const { id, year } = Astro.params;
 const { series } = Astro.props;
 
 const dbPath = import.meta.env.BIBLIODB_PATH;
 const db = new sqlite3.Database(dbPath);
 const publisher = series.publisherId != null ? await getPublisher(db, series.publisherId) : null;
-const _bookList = await getBookList(db, id);
+const _bookList = await getBookList(db, id, year);
 const bookList = new Map<string, BookListType[]>();
 _bookList.forEach(x => {
     const key = x.issue ?? "";
@@ -100,21 +106,21 @@ const issues = [...bookList.keys()].sort((a,b) => {
 
 ---
 <BaseLayout pageTitle={series.title}>
-    <h2>【<a href="../reviews">趣味の雑誌の書評欄で紹介された本のリスト</a>】</h2>
-    <div class="magazine-title">「{series.title}」</div>
-    <div class="publisher">
-    {
-        publisher ? (
-            <span>出版社：<a href={`/bibliographic/publishers/${publisher.id}`}>{publisher.name}</a></span>
-        ) : (
-            <span>出版社：不明</span>
-        )
-    }
-    </div>
+    <div class="navi"><a href="/bibliographic/bookreviews">趣味の雑誌の書評欄で紹介された本のリスト</a></div>
+    <h2>「{series.title}」（{publisher?.name}）</h2>
+    <h4>
+        発行年：
+        {[2025, 2026].map((y) => (
+            y == year ? 
+            <span class="current-year">{y}年</span> :
+            <span><a href={`/bibliographic/bookreviews/${id}/${y}`}>{y}年</a></span>
+        ))
+        }
+    </h4>
     {
         issues.map(x => (
             <div class="issue">
-                <h4>{x}</h4>
+                <div class="issue-title">{x}</div>
                 <div>
                     <table>
                         <tbody>
@@ -136,24 +142,29 @@ const issues = [...bookList.keys()].sort((a,b) => {
     }
 </BaseLayout>
 <style>
-    h2 {
-        font-size: 1em;
-        font-weight: bold;
-        margin: 0 0 2em 0;
-        padding: 0;
-    }
-    .magazine-title {
-        font-size: 150%;
-        font-weight: bold;
-        padding: 0;text-align: center;
-    }
-    .publisher {
+    .navi {
         text-align: right;
-        font-size: 80%;
+    }
+    h2 {
+        text-align: center;
+    }
+    h4 { 
+        text-align: center;
+        > span {
+            margin: 0 1em;
+        }
+        > span:not(:last-child)::after {
+            content: "/";
+            margin-left: 1em;
+        }
+        .current-year {
+            font-weight: bold;
+            color: red;
+        }
     }
     .issue {
         margin-bottom: 2em;
-        h4 {
+        .issue-title {
             margin: 0.5em 1em;
             padding: 0;
         }
@@ -166,10 +177,10 @@ const issues = [...bookList.keys()].sort((a,b) => {
             > tbody > tr:nth-child(even) {
                 background-color: unset;
             }
-            th:nth-child(1), td:nth-child(1) { width: 30%; }
-            th:nth-child(2), td:nth-child(2) { width: 20%; }
+            th:nth-child(1), td:nth-child(1) { width: 35%; }
+            th:nth-child(2), td:nth-child(2) { width: 35%; }
             th:nth-child(3), td:nth-child(3) { width: 20%; }
-            th:nth-child(4), td:nth-child(4) { width: 30%; }
+            th:nth-child(4), td:nth-child(4) { width: 10%; }
         }
     }
  </style>

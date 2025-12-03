@@ -1,0 +1,48 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { magazineData } from '../../../scripts/lib.ts'
+import sqlite3 from 'sqlite3';
+
+---
+<BaseLayout pageTitle="Bibliograpohic Data">
+    <h2>Comic Magazine Data</h2>
+    <div class="magazine-list">
+        <table>
+            <tbody>
+                {
+                    magazineData.map((mag) => (
+                        <tr>
+                            <td>{mag.title}：</td>
+                            <td><a href={`/bibliographic/magazines/${mag.id}/2025`}>2025年</a></td>
+                            <td><a href={`/bibliographic/magazines/${mag.id}/2026`}>2026年</a></td>
+                        </tr>
+                    ))  
+                }    
+            </tbody>
+        </table>
+    </div>
+</BaseLayout>
+
+<style>
+    h2 {
+        text-align: center;
+    }
+    .magazine-list {
+        text-align: center;
+        table {
+            width: auto;
+            margin-left: auto;
+            margin-right: auto;
+            font-size: 1em;
+        }
+        table > tbody > tr:nth-child(even) {
+            background-color: unset;
+        }
+        table > tbody > tr > td {
+            padding: 0.5em;
+        }
+        table > tbody > tr > td:first-child {
+            text-align: left;
+        }
+    }
+ </style>

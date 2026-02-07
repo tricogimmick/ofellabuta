@@ -1,0 +1,28 @@
+.ending-pattern-container {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1em;
+    .ending-pattern {
+        width: 400px;
+        > h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        > div {
+            text-align: center;
+            img {
+                max-width: 380px;
+                max-height: 220px;
+                width: unset;;
+            }
+        }
+        > p {
+            width: 380px;
+            margin-left: auto;
+            margin-right: auto;
+            font-size: 80%;
+        }
+    }
+}

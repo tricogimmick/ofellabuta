@@ -23,7 +23,7 @@ const next = nextArticles.length > 0 ? nextArticles.reduce((a,b) => a.slug >= b.
 
 ---
 
-<BaseLayout pageTitle={pageTitle} title={article.data.title} description={article.data.description}>
+<BaseLayout pageTitle={pageTitle} title={article.data.title} description={article.data.description} style={article.data.style}>
     <Article article={article}></Article>
     <PageNavigater path="archives" prev={prev?.slug ?? null} next={next?.slug ?? null}></PageNavigater>
 </BaseLayout>

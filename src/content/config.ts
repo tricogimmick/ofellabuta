@@ -7,6 +7,7 @@ const articlesCollection = defineCollection({
       createdAt: z.date(),
       description: z.string(),
       tags: z.array(z.string()),
+      style: z.string().optional(),
     }),
 });
 

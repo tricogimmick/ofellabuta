@@ -6,26 +6,26 @@ import PageNavigater from '../../components/PageNavigater.astro';
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
-  const restroomInComicsEntries = await getCollection('restroom_in_comics');
+  const restroomInComicsEntries = await getCollection('restroomInComicsCollection');
   return restroomInComicsEntries.map(entry => ({
-    params: { slug: entry.slug }, props: { restroomInComic: entry }
+    params: { slug: entry.id }, props: { restroomInComic: entry }
   }));
 }
 
 const pageTitle = "Restroom in Comics";
 const { restroomInComic } = Astro.props;
 
-const restroomInComics = await getCollection('restroom_in_comics');
-const prevArticles = restroomInComics.filter(x => x.slug < restroomInComic.slug);
-const prev = prevArticles.length > 0 ? prevArticles?.reduce((a,b) => a.slug < b.slug ? b : a): null;
-const nextArticles = restroomInComics.filter(x => x.slug > restroomInComic.slug);
-const next = nextArticles.length > 0 ? nextArticles.reduce((a,b) => a.slug >= b.slug ? b : a) : null;
+const restroomInComics = await getCollection('restroomInComicsCollection');
+const prevArticles = restroomInComics.filter(x => x.id < restroomInComic.id);
+const prev = prevArticles.length > 0 ? prevArticles?.reduce((a,b) => a.id < b.id ? b : a): null;
+const nextArticles = restroomInComics.filter(x => x.id > restroomInComic.id);
+const next = nextArticles.length > 0 ? nextArticles.reduce((a,b) => a.id >= b.id ? b : a) : null;
 
 
 ---
 
 <BaseLayout pageTitle={pageTitle} title={restroomInComic.data.title} description={restroomInComic.data.description}>
     <RestroomInComics {restroomInComic} />
-    <PageNavigater path="restroom_in_comics" prev={prev?.slug ?? null} next={next?.slug ?? null} />
+    <PageNavigater path="restroom_in_comics" prev={prev?.id ?? null} next={next?.id ?? null} />
 </BaseLayout>
   

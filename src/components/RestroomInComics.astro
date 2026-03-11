@@ -1,10 +1,12 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { render } from 'astro:content';
+
 interface Props {
-  restroomInComic: CollectionEntry<'restroom_in_comics'>;
+  restroomInComic: CollectionEntry<'restroomInComicsCollection'>;
 }
 const { restroomInComic } = Astro.props;
-const { Content } = await restroomInComic.render();
+const { Content } = await render(restroomInComic);
 
 ---
 

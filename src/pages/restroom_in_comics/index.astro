@@ -2,7 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 
-const restroomInComics = await getCollection('restroom_in_comics');
+const restroomInComics = await getCollection('restroomInComicsCollection');
 
 const pageTitle = "Index";
 ---
@@ -17,7 +17,7 @@ const pageTitle = "Index";
         </thead>
         <tbody>
             {restroomInComics.map((article) => (
-                <tr><td><a href=`/restroom_in_comics/${article.slug}`>{article.data.title} {article.data.author}</a></td><td>{article.data.createdAt.toDateString()}</td></tr>
+                <tr><td><a href=`/restroom_in_comics/${article.id}`>{article.data.title} {article.data.author}</a></td><td>{article.data.createdAt.toDateString()}</td></tr>
               ))}                    
         </tbody>
     </table>

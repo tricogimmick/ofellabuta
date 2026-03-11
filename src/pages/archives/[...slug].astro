@@ -6,25 +6,25 @@ import PageNavigater from '../../components/PageNavigater.astro';
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
-  const blogEntries = await getCollection('articles');
+  const blogEntries = await getCollection('articlesCollection');
   return blogEntries.map(entry => ({
-    params: { slug: entry.slug }, props: { article: entry }
+    params: { slug: entry.id }, props: { article: entry }
   }));
 }
 
 const pageTitle = "Archive";
 const { article } = Astro.props;
 
-const articles = await getCollection('articles');
-const prevArticles = articles.filter(x => x.slug < article.slug);
-const prev = prevArticles.length > 0 ? prevArticles?.reduce((a,b) => a.slug < b.slug ? b : a) : null;
-const nextArticles = articles.filter(x => x.slug > article.slug);
-const next = nextArticles.length > 0 ? nextArticles.reduce((a,b) => a.slug >= b.slug ? b : a) : null;
+const articles = await getCollection('articlesCollection');
+const prevArticles = articles.filter(x => x.id < article.id);
+const prev = prevArticles.length > 0 ? prevArticles?.reduce((a,b) => a.id < b.id ? b : a) : null;
+const nextArticles = articles.filter(x => x.id > article.id);
+const next = nextArticles.length > 0 ? nextArticles.reduce((a,b) => a.id > b.id ? b : a) : null;
 
 ---
 
 <BaseLayout pageTitle={pageTitle} title={article.data.title} description={article.data.description} style={article.data.style}>
     <Article article={article}></Article>
-    <PageNavigater path="archives" prev={prev?.slug ?? null} next={next?.slug ?? null}></PageNavigater>
+    <PageNavigater path="archives" prev={prev?.id ?? null} next={next?.id ?? null}></PageNavigater>
 </BaseLayout>
   

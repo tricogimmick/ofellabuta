@@ -1,10 +1,10 @@
 ---
 import { getCollection } from 'astro:content';
 import { sequence } from 'astro:middleware';
-const quotes = await getCollection('quotes');
+const quotes = await getCollection('quotesCollection');
 ---
 <nav>
-    <input type="hidden" id="quote-ids" value={quotes.map(quote => quote.slug).join(',')} />
+    <input type="hidden" id="quote-ids" value={quotes.map(quote => quote.id).join(',')} />
     <menu>
         <li><a href="/">Home</a></li>
         <li><a href="/archives">Archives</a></li>

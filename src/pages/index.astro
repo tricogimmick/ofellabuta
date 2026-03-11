@@ -9,7 +9,7 @@ import { getCollection } from 'astro:content';
 
 const pageTitle = "Top";
 
-const articles = (await getCollection('articles')).slice(-5).reverse();
+const articles = (await getCollection('articlesCollection')).slice(-5).reverse();
 
 
 
@@ -24,7 +24,7 @@ const articles = (await getCollection('articles')).slice(-5).reverse();
         {
           articles.map((article) => (
           <div style="text-align: center;">
-            <a href=`/archives/${article.slug}`>{article.data.title}</a>
+            <a href=`/archives/${article.id}`>{article.data.title}</a>
             <span>({article.data.createdAt.toDateString()})</span>
           </div>
           ))

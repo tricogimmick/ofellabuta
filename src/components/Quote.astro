@@ -1,10 +1,12 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { render } from 'astro:content';
+
 interface Props {
-    quote: CollectionEntry<'quotes'>;
+    quote: CollectionEntry<'quotesCollection'>;
 }
 const { quote } = Astro.props;
-const { Content } = await quote.render();
+const { Content } = await render(quote);
 
 ---
 

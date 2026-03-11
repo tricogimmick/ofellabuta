@@ -6,26 +6,26 @@ import PageNavigater from '../../components/PageNavigater.astro';
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
-  const quoteEntries = await getCollection('quotes');
+  const quoteEntries = await getCollection('quotesCollection');
   return quoteEntries.map(entry => ({
-    params: { slug: entry.slug }, props: { quote: entry }
+    params: { slug: entry.id }, props: { quote: entry }
   }));
 }
 
 const pageTitle = "Quotes";
 const { quote } = Astro.props;
 
-const quotes = await getCollection('quotes');
-const prevArticles = quotes.filter(x => x.slug < quote.slug);
-const prev = prevArticles.length > 0 ? prevArticles?.reduce((a,b) => a.slug < b.slug ? b : a): null;
-const nextArticles = quotes.filter(x => x.slug > quote.slug);
-const next = nextArticles.length > 0 ? nextArticles.reduce((a,b) => a.slug >= b.slug ? b : a) : null;
+const quotes = await getCollection('quotesCollection');
+const prevArticles = quotes.filter(x => x.id < quote.id);
+const prev = prevArticles.length > 0 ? prevArticles?.reduce((a,b) => a.id < b.id ? b : a): null;
+const nextArticles = quotes.filter(x => x.id > quote.id);
+const next = nextArticles.length > 0 ? nextArticles.reduce((a,b) => a.id > b.id ? b : a) : null;
 
 
 ---
 
 <BaseLayout pageTitle={pageTitle} title={quote.data.title} description={quote.data.source}>
     <Quote {quote} />
-    <PageNavigater path="quotes" prev={prev?.slug ?? null} next={next?.slug ?? null} />
+    <PageNavigater path="quotes" prev={prev?.id ?? null} next={next?.id ?? null} />
 </BaseLayout>
   

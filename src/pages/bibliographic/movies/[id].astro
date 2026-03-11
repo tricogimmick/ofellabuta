@@ -12,7 +12,7 @@ import type { RelatedLinksType } from "../../../types/relatedLinks";
 import BreadcrumbList, { type BreadcrumbListType } from "../../../components/BreadcrumbList.astro";
 
 type ParamsType = {
-    id: number;
+    id: string;
 };
 type PropsType = {
     movie: MovieType;
@@ -37,7 +37,7 @@ export async function getStaticPaths() {
                     ng(err);
                 } else {
                     ok(rows.map(x => ({
-                        params: { id: x.id ?? 0 },
+                        params: { id: String(x.id ?? 0) },
                         props: { movie: x }
                     })));
                 }

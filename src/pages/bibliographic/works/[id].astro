@@ -9,7 +9,7 @@ import type { RelatedLinksType } from "../../../types/relatedLinks";
 
 
 type ParamsType = {
-    id: number;
+    id: string;
 };
 type PropsType = {
     work: WorkType;
@@ -46,7 +46,7 @@ export async function getStaticPaths() {
                     ng(err);
                 } else {
                     ok(rows.map(x => ({
-                        params: { id: x.id ?? 0 },
+                        params: { id: String(x.id ?? 0) },
                         props: { work: x }
                     })));
                 }

@@ -14,7 +14,7 @@ import { magazineData } from '../../../scripts/lib.ts'
 import BibliographicMenu from '../../../components/BibliographicMenu.astro';
 
 type ParamsType = {
-    id: number;
+    id: string;
 };
 type PropsType = {
     print: PrintType;
@@ -55,7 +55,7 @@ export async function getStaticPaths() {
                     ng(err);
                 } else {
                     ok(rows.map(x => ({
-                        params: { id: x.id ?? 0 },
+                        params: { id: String(x.id ?? 0) },
                         props: { print: x }
                     })));
                 }

@@ -8,7 +8,7 @@ import type { SeriesType } from '../../../types/series';
 import type { PublisherType } from '../../../types/publisher';
 
 type ParamsType = {
-    id: number;
+    id: string;
 };
 type PropsType = {
     series: SeriesType;
@@ -36,7 +36,7 @@ export async function getStaticPaths() {
                     ng(err);
                 } else {
                     ok(rows.map(x => ({
-                        params: { id: x.id ?? 0 },
+                        params: { id: String(x.id ?? 0) },
                         props: { series: x }
                     })));
                 }

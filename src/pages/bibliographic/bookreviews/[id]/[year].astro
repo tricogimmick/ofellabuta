@@ -9,8 +9,8 @@ import type { BookListType } from "../../../../types/bookList";
 import type { PublisherType } from "../../../../types/publisher";
 
 type ParamsType = {
-    id: number;
-    year: number;
+    id: string;
+    year: string;
 };
 type PropsType = {
     series: SeriesType;
@@ -31,11 +31,11 @@ export async function getStaticPaths() {
                 } else {
                     ok([
                         ...rows.map(x => ({
-                            params: { id: x.id ?? 0, year: 2025 },
+                            params: { id: String(x.id ?? 0), year: "2025" },
                             props: { series: x }
                         })),
                         ...rows.map(x => ({
-                            params: { id: x.id ?? 0, year: 2026 },
+                            params: { id: String(x.id ?? 0), year: "2026" },
                             props: { series: x }
                         })) 
                     ]);

@@ -18,7 +18,6 @@ function getFinishedReading(db: sqlite3.Database, row: Number) {
     return new Promise<PrintType[]>((ok, ng) => {
         db.all<PrintType>(
             "SELECT * FROM prints WHERE finishedReadingDate is not null AND finishedReadingDate <> '' " +
-            " AND note is not null AND note <> '' " + 
             "ORDER BY finishedReadingDate DESC LIMIT ?",
             [ row ],
             (err, rows) => {

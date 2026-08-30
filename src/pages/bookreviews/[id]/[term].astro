@@ -1,0 +1,135 @@
+---
+import type { BookReviewItemType } from '../../../types/collection';
+
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import sqlite3 from 'sqlite3';
+import { executeQuery } from '../../../scripts/lib';
+import * as SeriesModel from '../../../models/series';
+import * as PublishersModel from '../../../models/publishers';
+import * as CollectionsModel from '../../../models/collections'
+
+type ParamsType = {
+    id: string;
+    term: string;
+};
+type GetStaticPathsType = {
+    params: ParamsType;
+};
+
+type SeriesTermType = {
+    seriesId: number | null;
+    term: number | null;
+};
+
+export async function getStaticPaths() : Promise<GetStaticPathsType[]> {
+    const dbPath = import.meta.env.BIBLIODB_PATH;
+    const db = new sqlite3.Database(dbPath);
+    try {
+        const rows = await executeQuery<SeriesTermType>(db,
+            "SELECT DISTINCT seriesId, term FROM collections WHERE collectionType = 'ブックレビュー' AND seriesId IS NOT NULL ORDER BY seriesId, term",
+            []
+        );
+        return rows.map(x => ({
+            params: { id: String(x.seriesId ?? 0), term: x.term != null ? String(x.term) : 'none' }
+        }))
+    } finally {
+        db.close();
+    }
+}
+
+const { id, term } = Astro.params;
+const seriesId = Number(id);
+const termValue = Number(term);
+
+const dbPath = import.meta.env.BIBLIODB_PATH;
+const db = new sqlite3.Database(dbPath);
+
+const series = await SeriesModel.get(db, seriesId);
+const publisher = series?.publisherId != null ? await PublishersModel.get(db, series.publisherId) : null;
+const terms = await CollectionsModel.getTerms(db, seriesId);
+const items = await CollectionsModel.getBookReviewItems(db, seriesId, termValue);
+
+const printsByIssue = new Map<string, BookReviewItemType[]>();
+items.forEach(x => {
+    if (!printsByIssue.has(x.seriesIssue)) {
+        printsByIssue.set(x.seriesIssue, []);
+    }
+    printsByIssue.get(x.seriesIssue)?.push(x);
+});
+
+---
+<BaseLayout pageTitle={series.title}>
+    <h2>「{series.title}」（{publisher?.name}）</h2>
+    <h4>{series.subTitle}</h4>
+    <h4>
+        発行年：
+        {terms.map((t, i) => (
+            t === termValue ?
+            <>{i > 0 ? '/' : ''}<span class="current-term">{t != null ? `${t}年` : "その他"}</span></> :
+            <>{i > 0 ? '/' : ''}<span><a href={`/bookreviews/${id}/${t != null ? t : 'none'}`}>{t != null ? `${t}年` : "その他"}</a></span></>
+        ))}
+    </h4>
+    {
+        [...printsByIssue.keys()].map(x => (
+            <div class="issue">
+                <div class="issue-title">{x}</div>
+                <div>
+                    <table>
+                        <tbody>
+                            {
+                                (printsByIssue.get(x) ?? []).map(p => (
+                                    <tr>
+                                        <td><a href={`/bibliographic/prints/${p.id}`}>{p.title}</a></td>
+                                        <td>{p.persons?.map(p => p.name).join(' / ')}</td>
+                                        <td>{p.publisher}</td>
+                                        <td>{p.publicationDate}</td>
+                                    </tr>
+                                ))
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        ))
+    }
+</BaseLayout>
+<style>
+    .navi {
+        text-align: right;
+    }
+    h2 {
+        text-align: center;
+        line-height: 1.5em;
+    }
+    h4 {
+        text-align: center;
+        > span {
+            margin: 0 1em;
+        }
+        .current-term {
+            font-weight: bold;
+            color: red;
+        }
+    }
+    .issue {
+        margin-bottom: 2em;
+        .issue-title {
+            margin: 0.5em 1em;
+            padding: 0;
+        }
+        table {
+            margin-left: 1em;
+            font-size: 70%;
+            > tbody > tr {
+                border-bottom: 1px solid #ccc;
+            }
+            > tbody > tr:nth-child(even) {
+                background-color: unset;
+            }
+            th:nth-child(1), td:nth-child(1) { width: 35%; }
+            th:nth-child(2), td:nth-child(2) { width: 35%; }
+            th:nth-child(3), td:nth-child(3) { width: 20%; }
+            th:nth-child(4), td:nth-child(4) { width: 10%; }
+        }
+    }
+</style>

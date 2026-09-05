@@ -3,7 +3,6 @@ import type { BookReviewItemType } from '../../../types/collection';
 
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import sqlite3 from 'sqlite3';
-import { executeQuery } from '../../../scripts/lib';
 import * as SeriesModel from '../../../models/series';
 import * as PublishersModel from '../../../models/publishers';
 import * as CollectionsModel from '../../../models/collections'
@@ -16,19 +15,11 @@ type GetStaticPathsType = {
     params: ParamsType;
 };
 
-type SeriesTermType = {
-    seriesId: number | null;
-    term: number | null;
-};
-
 export async function getStaticPaths() : Promise<GetStaticPathsType[]> {
     const dbPath = import.meta.env.BIBLIODB_PATH;
     const db = new sqlite3.Database(dbPath);
     try {
-        const rows = await executeQuery<SeriesTermType>(db,
-            "SELECT DISTINCT seriesId, term FROM collections WHERE collectionType = 'ブックレビュー' AND seriesId IS NOT NULL ORDER BY seriesId, term",
-            []
-        );
+        const rows = await CollectionsModel.getAllReviewTargetSeriesWithTerms(db);
         return rows.map(x => ({
             params: { id: String(x.seriesId ?? 0), term: x.term != null ? String(x.term) : 'none' }
         }))

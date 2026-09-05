@@ -12,6 +12,12 @@ export type CollectionType = {
     note:  string;
 }
 
+export type SeriesIdWithTermType = {
+    seriesId: number;
+    seriesTitle: string;
+    term: number;
+}
+
 export type BookReviewItemType = {
     id: number;
     title: string;

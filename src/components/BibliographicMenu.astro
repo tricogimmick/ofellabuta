@@ -5,9 +5,8 @@ interface Props {
 const { currentPage } = Astro.props;
 ---
 <menu>
-    <li><a href="/bibliographic/bought_books" class={ currentPage === "bought_books" ? "current" : null} >最近買った本</a></li>
-    <li><a href="/bibliographic/finished_reading" class={ currentPage === "finished_reading" ? "current" : null} >最近読んだ本</a></li>
-    <li><a href="/bibliographic/watched_movies" class={ currentPage === "watched_movies" ? "current" : null} >最近観た映画</a></li>
+    <li><a href="/finished_reading" class={ currentPage === "finished_reading" ? "current" : null} >最近読んだ本</a></li>
+    <li><a href="/watched_movies" class={ currentPage === "watched_movies" ? "current" : null} >最近観た映画</a></li>
 </menu>          
 
 <style>

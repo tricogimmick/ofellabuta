@@ -244,9 +244,12 @@ authors.forEach(a => {
                     }
                     <tr><th>出版社：</th><td>{ brand ? `${publisher?.name}（${brand.name}）` : publisher?.name}</td></tr>
                     <tr><th>発行日：</th><td>{print.publicationDate}</td></tr>
-                    <tr><th>購入日：</th><td>{print.purchaseDate}</td></tr>
+                    {
+                        print.purchaseDate ?
+                        <tr><th>購入日：</th><td>{print.purchaseDate}</td></tr> :
+                        null
+                    }
                     <tr><th>読了日：</th><td>{print.finishedReadingDate}</td></tr>
-                    <tr><th>管理番号：</th><td>{print.issueNumber}</td></tr>
                     {
                         workOfCover ?
                         <tr><th>表紙：</th><td>{workOfCover.title}</td></tr> :
@@ -265,14 +268,6 @@ authors.forEach(a => {
             <div class="text-content description">
                 <div class="text-content-label">備　考：</div>
                 <div class="text-content-data"><Fragment set:html={marked.parse(print.description)} /></div>
-            </div> :
-            null
-        }
-        {
-            print.note ?
-            <div class="text-content note">
-                <div class="text-content-label">Note：</div>
-                <div class="text-content-data"><Fragment set:html={marked.parse(print.note)} /></div>
             </div> :
             null
         }

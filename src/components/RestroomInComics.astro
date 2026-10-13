@@ -56,7 +56,7 @@ const { Content } = await render(restroomInComic);
         line-height: 1.4em;
         font-family: serif;
         font-size: 1.5em;
-        > p:has(>img) {
+        > :global(p:has(>img)) {
           text-align: center;
         } 
         img {

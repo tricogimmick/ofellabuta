@@ -1,0 +1,15 @@
+.image-content {
+    display: flex;
+    width: 500px;
+    margin: 0 auto 10px auto;
+    padding: 0;
+    flex-direction: column;
+    gap: 10px;
+    > img {
+        max-width: 500px;
+    }
+    > span {
+        font-size: 0.8rem;
+        text-align: center;
+    }
+}

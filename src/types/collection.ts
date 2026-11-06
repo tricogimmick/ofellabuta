@@ -20,6 +20,8 @@ export type SeriesIdWithTermType = {
 
 export type BookReviewItemType = {
     id: number;
+    printType: string;
+    seriesTitle: string;
     title: string;
     publisher: string;
     publicationDate: string;

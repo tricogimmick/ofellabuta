@@ -27,11 +27,12 @@ export async function getTerms(db: sqlite3.Database, seriesId: number) {
 
 // 指定したシリーズの指定したタームのブックレビューアイテムを取得する
 export async function getBookReviewItems(db: sqlite3.Database, seriesId: number, term: number) {
-	const sql = `SELECT p.id,  p.title,  ps.name as publisher, p.publicationDate, c.issue as seriesIssue
+	const sql = `SELECT p.id, p.printType, s.title as seriesTitle, p.title, ps.name as publisher, p.publicationDate, c.issue as seriesIssue
 				 FROM related_collections as rc
 				 JOIN collections as c ON c.id = rc.collectionId
 				 JOIN prints as p ON p.id = rc.relatedId
 				 LEFT JOIN publishers as ps ON ps.id = p.publisherId
+				 LEFT JOIN series as s ON s.id = p.seriesId
 				 WHERE rc.relatedType = 'PRINT'
 				   AND c.seriesId = ? 
 				   AND c.term = ? 

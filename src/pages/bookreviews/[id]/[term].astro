@@ -70,7 +70,7 @@ items.forEach(x => {
                             {
                                 (printsByIssue.get(x) ?? []).map(p => (
                                     <tr>
-                                        <td><a href={`/bibliographic/prints/${p.id}`}>{p.title}</a></td>
+                                        <td><a href={`/bibliographic/prints/${p.id}`}>{p.printType == "雑誌" ? `${p.seriesTitle} ${p.title}` : p.title}</a></td>
                                         <td>{p.persons?.map(p => p.name).join(' / ')}</td>
                                         <td>{p.publisher}</td>
                                         <td>{p.publicationDate}</td>

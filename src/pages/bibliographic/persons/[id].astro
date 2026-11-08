@@ -175,9 +175,9 @@ const relatedLinks = links.filter(x => x.linkType === 'LINK');
             null
         }
         <div class="tab">
-            <button id="works-tab" class="selected">作品リスト</button>
-            <button id="prints-tab">書籍リスト</button>
-            <button id="movies-tab">映画リスト</button>
+            { works?.length > 0 ? <button id="works-tab" class="selected">作品リスト</button> : null }
+            { prints?.length > 0 ? <button id="prints-tab">書籍リスト</button> : null }
+            { movies?.length > 0 ? <button id="movies-tab">映画リスト</button> : null }
             <span>&nbsp;</span>
         </div>
         <div class="container works">

@@ -157,7 +157,7 @@ const relatedLinks = links.filter(x => x.linkType === 'LINK');
                         authors.map((author, idx) => (
                             <tr>
                                 <th>{author.role}：</th>
-                                <td><a href={`/bibliographic/persons/${author.id}`}>{author.name}</a></td>
+                                <td><a href={`/data/persons/${author.id}`}>{author.name}</a></td>
                             </tr>
                         ))
                     }    
@@ -218,7 +218,7 @@ const relatedLinks = links.filter(x => x.linkType === 'LINK');
                             prints.map((print, i) => (
                                 <tr>
                                     <td>{i + 1}</td>
-                                    <td><a href={`/bibliographic/prints/${print.id}`}>{ print.series } { print.title }</a></td>
+                                    <td><a href={`/data/prints/${print.id}`}>{ print.series } { print.title }</a></td>
                                     <td>{ print.publisher}</td>
                                     <td>{ print.publicationDate }</td>
                                     <td>{ print.printType}</td>

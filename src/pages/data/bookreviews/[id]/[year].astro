@@ -106,14 +106,14 @@ const issues = [...bookList.keys()].sort((a,b) => {
 
 ---
 <BaseLayout pageTitle={series.title}>
-    <div class="navi"><a href="/bibliographic/bookreviews">趣味の雑誌の書評欄で紹介された本のリスト</a></div>
+    <div class="navi"><a href="/data/bookreviews">趣味の雑誌の書評欄で紹介された本のリスト</a></div>
     <h2>「{series.title}」（{publisher?.name}）</h2>
     <h4>
         発行年：
         {[2025, 2026].map((y) => (
             y == year ? 
             <span class="current-year">{y}年</span> :
-            <span><a href={`/bibliographic/bookreviews/${id}/${y}`}>{y}年</a></span>
+            <span><a href={`/data/bookreviews/${id}/${y}`}>{y}年</a></span>
         ))
         }
     </h4>

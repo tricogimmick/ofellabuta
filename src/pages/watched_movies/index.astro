@@ -37,7 +37,7 @@ const movies = await getRecentlyWatchedMovies(db, 20);
         <tbody>
             {movies.map((movie) => (
                 <tr>
-                    <td><a href=`/bibliographic/movies/${movie.id}`>{movie.title}</a></td>
+                    <td><a href=`/data/movies/${movie.id}`>{movie.title}</a></td>
                     <td>{movie.viewingDate}</td>
                 </tr>
               ))}                    

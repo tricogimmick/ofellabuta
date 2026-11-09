@@ -58,7 +58,7 @@ for (const book of books) {
         id: book.id as number,
         title: book.title,
         finishedReadingDate: book.finishedReadingDate,
-        url: `/bibliographic/prints/${book.id}`,
+        url: `/data/prints/${book.id}`,
         coverImage: coverImage ? coverImage.url : ''
     });
 }

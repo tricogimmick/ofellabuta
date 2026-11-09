@@ -178,9 +178,9 @@ function formatContents(contents: ContentType[]) {
     contents.forEach(c => {
         const content = result.find(x => x.orderNo === c.orderNo);
         if (content) {
-            content.author += ` / <a href="/bibliographic/persons/${c.authorId}">${c.author}</a>`;
+            content.author += ` / <a href="/data/persons/${c.authorId}">${c.author}</a>`;
         } else {
-            c.author = c.author ? `<a href="/bibliographic/persons/${c.authorId}">${c.author}</a>` : '';
+            c.author = c.author ? `<a href="/data/persons/${c.authorId}">${c.author}</a>` : '';
             result.push(c);
         }
     });
@@ -236,7 +236,7 @@ authors.forEach(a => {
                     <tr><th>出版種別：</th><td>{print.printType}</td></tr>
                     {
                         roles.keys().map(role => {
-                            const links = roles.get(role)?.map(author => `<a href="/bibliographic/persons/${author.id}">${author.name}</a>`).join(" / ");
+                            const links = roles.get(role)?.map(author => `<a href="/data/persons/${author.id}">${author.name}</a>`).join(" / ");
                             return (
                                 <tr><th>{role}：</th><td set:html={links} /></tr>
                             );
@@ -312,7 +312,7 @@ authors.forEach(a => {
                                     <td class="title">
                                         {
                                             content.workId ?
-                                            <a href={`/bibliographic/works/${content.workId}`}>{content.title}</a> :
+                                            <a href={`/data/works/${content.workId}`}>{content.title}</a> :
                                             content.title
                                         }
                                     </td>

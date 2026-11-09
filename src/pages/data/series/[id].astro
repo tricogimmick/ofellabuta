@@ -122,8 +122,8 @@ const descHtml = series.description != null && series.description != "" ? marked
         {
           issues.filter(issue => String(issue.issueNumber).substring(0, 4) === y).map((issue) => (
               <div class="issue">
-                <a href={`/bibliographic/prints/${issue.id}`}><img src={issue.url} /></a>
-                <div class="title"><a href={`/bibliographic/prints/${issue.id}`}>{issue.title}</a></div>
+                <a href={`/data/prints/${issue.id}`}><img src={issue.url} /></a>
+                <div class="title"><a href={`/data/prints/${issue.id}`}>{issue.title}</a></div>
               </div>
           ))
         }
@@ -133,12 +133,12 @@ const descHtml = series.description != null && series.description != "" ? marked
       {
         issues.map((issue) => (
             <div class="issue">
-              <a href={`/bibliographic/prints/${issue.id}`}>
+              <a href={`/data/prints/${issue.id}`}>
                 {
                   issue.url != null && issue.url != "" ?  <img src={issue.url} /> : <span class="no-image">NO IMAGE</span>
                 }
               </a>
-              <div class="title"><a href={`/bibliographic/prints/${issue.id}`}>{issue.title}</a></div>
+              <div class="title"><a href={`/data/prints/${issue.id}`}>{issue.title}</a></div>
             </div>
         ))
       }

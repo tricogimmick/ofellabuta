@@ -41,7 +41,7 @@ const reviews = await getReview(db);
             {
               persons.map((person) => (
                   <div class="item">
-                      <a href={`/bibliographic/persons/${person.id}`}>{person.name} 作品リスト</a>
+                      <a href={`/data/persons/${person.id}`}>{person.name} 作品リスト</a>
                   </div>
               ))
             }
@@ -53,7 +53,7 @@ const reviews = await getReview(db);
             {
               magazineData.map((mag) => (
                   <div class="item">
-                      <a href={`/bibliographic/series/${mag.id}`}>{mag.title}</a>
+                      <a href={`/data/series/${mag.id}`}>{mag.title}</a>
                   </div>
               ))  
             }    
@@ -65,7 +65,7 @@ const reviews = await getReview(db);
           {
             reviews.map((review) => (
                 <div class="item">
-                    <a href={`/bibliographic/bookreviews/${review.id}`}>{review.title}</a>
+                    <a href={`/data/bookreviews/${review.id}`}>{review.title}</a>
                 </div>
             ))
           }

@@ -35,8 +35,8 @@ const reviews = await getReview(db);
                     reviews.map((review) => (
                         <tr>
                             <td>{review.title}：</td>
-                            <td><a href={`/bibliographic/bookreviews/${review.id}/2025`}>2025年</a></td>
-                            <td><a href={`/bibliographic/bookreviews/${review.id}/2026`}>2026年</a></td>
+                            <td><a href={`/data/bookreviews/${review.id}/2025`}>2025年</a></td>
+                            <td><a href={`/data/bookreviews/${review.id}/2026`}>2026年</a></td>
                         </tr>
                     ))  
                 }    

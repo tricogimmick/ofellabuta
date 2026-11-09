@@ -194,7 +194,7 @@ const relatedLinks = links.filter(x => x.linkType === 'LINK');
                     works.map((work, idx) => (
                         <div class={`container-row ${idx % 2 == 0 ? "even" : "odd"}`}>
                             <div class="container-cell">{idx + 1}</div>
-                            <div class="container-cell"><a href={`/bibliographic/works/${work.id}`}>{work.title}</a></div>
+                            <div class="container-cell"><a href={`/data/works/${work.id}`}>{work.title}</a></div>
                             <div class="container-cell">{work.publicationYear}</div>
                             <div class="container-cell">{work.contentType}</div>
                         </div>
@@ -218,7 +218,7 @@ const relatedLinks = links.filter(x => x.linkType === 'LINK');
                         <div class={`container-row ${idx % 2 == 0 ? "even" : "odd"}`}>
                             <div class="container-cell">{idx + 1}</div>
                             <div class="container-cell">
-                                <a href={`/bibliographic/prints/${print.id}`}>{ (print.seriesTitle ?? "") != "" ? `${print.seriesTitle} ${print.title}` : print.title }</a>
+                                <a href={`/data/prints/${print.id}`}>{ (print.seriesTitle ?? "") != "" ? `${print.seriesTitle} ${print.title}` : print.title }</a>
                             </div>
                             <div class="container-cell">{print.publicationDate}</div>
                             <div class="container-cell">{print.printType}</div>
@@ -242,7 +242,7 @@ const relatedLinks = links.filter(x => x.linkType === 'LINK');
                         <div class={`container-row ${idx % 2 == 0 ? "even" : "odd"}`}>
                             <div class="container-cell">{idx + 1}</div>
                             <div class="container-cell">
-                                <a href={`/bibliographic/movies/${movie.id}`}>{movie.title}{movie.originalTitle ? `（${movie.originalTitle}）` : null}</a>
+                                <a href={`/data/movies/${movie.id}`}>{movie.title}{movie.originalTitle ? `（${movie.originalTitle}）` : null}</a>
                             </div>
                             <div class="container-cell">{movie.country}</div>
                             <div class="container-cell">{movie.releaseYear ?? "??"}年</div>

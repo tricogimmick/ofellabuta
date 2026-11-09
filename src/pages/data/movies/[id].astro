@@ -110,7 +110,7 @@ const breadcrumbList: BreadcrumbListType = {
 };
 /*
 if (series) {
-    breadcrumbList.items.push({name: series?.title ?? "", url: `/bibliographic/series/${series.id}`});
+    breadcrumbList.items.push({name: series?.title ?? "", url: `/data/series/${series.id}`});
 }
 */
 
@@ -144,7 +144,7 @@ stuffAndCasts.forEach(x => {
                         roles.map(item => (
                             <tr>
                                 <th>{item.role}：</th>
-                                <td><Fragment set:html={item.data.map(p => `<a href="/bibliographic/persons/${p.id}">${p.name}</a>`).join(" / ")} /></td>
+                                <td><Fragment set:html={item.data.map(p => `<a href="/data/persons/${p.id}">${p.name}</a>`).join(" / ")} /></td>
                             </tr>
                         ))
                     }

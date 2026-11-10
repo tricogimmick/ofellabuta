@@ -29,7 +29,7 @@ type firstPublishedType = {
 }
 type PrintType = {
     id: number;
-    series: string;
+    seriesTitle: string;
     title: string;
     publisher: string;
     publicationDate: string;
@@ -110,12 +110,12 @@ function getRelatedLinks(db: sqlite3.Database, workId: number) {
 function getPrints(db: sqlite3.Database, workId: number) {
     return new Promise<PrintType[]>((ok, ng) => {
         db.all<PrintType>(
-            "SELECT p.id, s.title as series, p.title, pb.name as publisher, p.publicationDate, p.printType " +
+            "SELECT p.id, s.title as seriesTitle, p.title, pb.name as publisher, p.publicationDate, p.printType " +
             "FROM contents as c " +
             "JOIN prints as p ON p.id = c.printId " +
             "LEFT JOIN series as s ON s.id = p.seriesId " +
             "LEFT JOIN publishers as pb ON pb.id = p.publisherId " +
-            "WHERE c.workId = ? " +
+            "WHERE c.workId = ? AND p.printType = '書籍' " +
             "ORDER BY p.publicationDate",
             [workId],
             (err, rows) => {
@@ -128,15 +128,38 @@ function getPrints(db: sqlite3.Database, workId: number) {
     });
 }
 
+function getMagazines(db: sqlite3.Database, workId: number) {
+    return new Promise<PrintType[]>((ok, ng) => {
+        db.all<PrintType>(
+            "SELECT p.id, s.title as seriesTitle, p.title, pb.name as publisher, p.publicationDate, p.printType " +
+            "FROM contents as c " +
+            "JOIN prints as p ON p.id = c.printId " +
+            "LEFT JOIN series as s ON s.id = p.seriesId " +
+            "LEFT JOIN publishers as pb ON pb.id = p.publisherId " +
+            "WHERE c.workId = ? AND p.printType = '雑誌' " +
+            "ORDER BY p.publicationDate",
+            [workId],
+            (err, rows) => {
+                if (err) {
+                    ng(err);
+                } else {
+                    ok(rows || []);
+                }
+            });
+    });
+}
+
+
 const { id } = Astro.params;
 const { work } = Astro.props;
 
 const dbPath = import.meta.env.BIBLIODB_PATH;
 const db = new sqlite3.Database(dbPath);
-const authors = await getAuthors(db, id);
-const firstPublished = await getFirstPublished(db, id);
-const links = await getRelatedLinks(db, id);
-const prints = await getPrints(db, id);
+const authors = await getAuthors(db, Number(id));
+const firstPublished = await getFirstPublished(db, Number(id));
+const links = await getRelatedLinks(db, Number(id));
+const prints = await getPrints(db, Number(id));
+const magazines = await getMagazines(db, Number(id));
 
 const title = work.title ?? "Unknown";
 const relatedLinks = links.filter(x => x.linkType === 'LINK');
@@ -199,38 +222,99 @@ const relatedLinks = links.filter(x => x.linkType === 'LINK');
             </div> :
             null
         }
-        {
-            prints.length > 0 ?
-            <div class="prints">
-                <h4>掲載書籍・雑誌</h4>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>タイトル</th>
-                            <th>出版社</th>
-                            <th>発行日</th>
-                            <th>種別</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            prints.map((print, i) => (
-                                <tr>
-                                    <td>{i + 1}</td>
-                                    <td><a href={`/data/prints/${print.id}`}>{ print.series } { print.title }</a></td>
-                                    <td>{ print.publisher}</td>
-                                    <td>{ print.publicationDate }</td>
-                                    <td>{ print.printType}</td>
-                                </tr>
-                            ))
-                        }
-                    </tbody>
-                </table>
-            </div>    
-            : null
-        }
+        <div class="tab">
+            { prints?.length > 0 ? <button id="prints-tab">掲載書籍</button> : null }
+            { magazines?.length > 0 ? <button id="magazines-tab">掲載雑誌</button> : null }
+            <span>&nbsp;</span>
+        </div>
+        <div class="container prints" style="display: none;">
+            <div class="container-header">
+                <div class="container-row">
+                    <div class="container-cell">No</div>
+                    <div class="container-cell">タイトル</div>
+                    <div class="container-cell">出版社</div>
+                    <div class="container-cell">発行日</div>
+                    <div class="container-cell">種別</div>
+                </div>
+            </div>
+            <div class="contaner-body">
+                {
+                    prints.map((print, idx) => (
+                        <div class={`container-row ${idx % 2 == 0 ? "even" : "odd"}`}>
+                            <div class="container-cell">{idx + 1}</div>
+                            <div class="container-cell">
+                                <a href={`/data/prints/${print.id}`}>{ (print.seriesTitle ?? "") != "" ? `${print.seriesTitle} ${print.title}` : print.title }</a>
+                            </div>
+                            <div class="container-cell">{print.publisher}</div>
+                            <div class="container-cell">{print.publicationDate}</div>
+                            <div class="container-cell">{print.printType}</div>
+                        </div>
+                    ))
+                }
+            </div>
+        </div>
+        <div class="container magazines" style="display: none;">
+            <div class="container-header">
+                <div class="container-row">
+                    <div class="container-cell">No</div>
+                    <div class="container-cell">タイトル</div>
+                    <div class="container-cell">出版社</div>
+                    <div class="container-cell">発行日</div>
+                    <div class="container-cell">種別</div>
+                </div>
+            </div>
+            <div class="contaner-body">
+                {
+                    magazines.map((magazine, idx) => (
+                        <div class={`container-row ${idx % 2 == 0 ? "even" : "odd"}`}>
+                            <div class="container-cell">{idx + 1}</div>
+                            <div class="container-cell">
+                                <a href={`/data/prints/${magazine.id}`}>{ (magazine.seriesTitle ?? "") != "" ? `${magazine.seriesTitle} ${magazine.title}` : magazine.title }</a>
+                            </div>
+                            <div class="container-cell">{magazine.publisher}</div>
+                            <div class="container-cell">{magazine.publicationDate}</div>
+                            <div class="container-cell">{magazine.printType}</div>
+                        </div>
+                    ))
+                }
+            </div>
+        </div>
     </div>
+    <script>
+        function openTab(tabName: string) {
+            console.log(`openTab: ${tabName}`);
+            const prints = document.querySelector('.container.prints') as HTMLElement;
+            const magazines = document.querySelector('.container.magazines') as HTMLElement;
+            if (tabName === 'prints'){
+                if (prints != null) {
+                    prints.style.display = 'block';
+                    document.getElementById("prints-tab")?.classList.add("selected");
+                }
+                if (magazines != null) {
+                    magazines.style.display = 'none';
+                    document.getElementById("magazines-tab")?.classList.remove("selected");
+                }
+            } else {
+                if (prints != null) {
+                    prints.style.display = 'none';
+                    document.getElementById("prints-tab")?.classList.remove("selected");
+                }
+                if (magazines != null) {
+                    magazines.style.display = 'block';
+                    document.getElementById("magazines-tab")?.classList.add("selected");
+                }
+            }
+        }
+        document.getElementById('prints-tab')?.addEventListener('click', () => openTab('prints'));
+        document.getElementById('magazines-tab')?.addEventListener('click', () => openTab('magazines'));
+
+        if (document.getElementById('prints-tab') != null) {
+            openTab('prints');
+        } else if (document.getElementById('magazines-tab') != null) {
+            openTab('magazines');
+        }
+
+    </script>
 </BaseLayout>  
 
 <style>
@@ -265,17 +349,73 @@ const relatedLinks = links.filter(x => x.linkType === 'LINK');
                 margin-left: 1em;
             }
         }
-        .prints {
-            table {
-                border-collapse: collapse;
-                width: 100%;
-                th {
-                    text-align: left;
+        .tab {
+            margin-top: 2em;
+            display: flex;
+            > button {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0.5em 1em;
+                width: 10em;
+                background-color: #e0e0e0;
+                border-top: 1px solid gray;
+                border-left: 1px solid gray;
+                border-bottom: 1px solid gray;
+                border-right: none;
+            }
+            > button.selected {
+                border-bottom: none;
+                background-color: #eeeeee;
+            }
+            > span {
+                display: block;
+                flex-grow: 1;
+                border-left: 1px solid gray;
+                border-bottom: 1px solid gray;
+            }
+        }
+        .container {
+            margin-top: 1em;
+            padding: 0;
+            font-size: 12px;
+            .container-header {
+                margin: 0;
+                padding: 0;
+                border-bottom: 1px solid gray;
+                font-weight: bold;
+            }
+            .contaner-body {
+                margin: 0;
+                padding: 0;
+                max-height: 31em;
+                overflow-y: auto;
+            }
+            .container-row {
+                margin: 0;
+                padding: 0;
+                display: flex;
+                .container-cell {
+                    padding: 0.2em 1em;
                 }
-                th:nth-child(1), td:nth-child(1) {
-                    width: 20px;
+                .container-cell:nth-child(1) {
+                    width: 4em;
                     text-align: right;
                 }
+                .container-cell:nth-child(2) {
+                    width: 40em;
+                    text-align: left;
+                }
+                .container-cell:nth-child(3) {
+                    width: 6em;
+                    text-align: right;
+                }
+                .container-cell:nth-child(4) {
+                    width: 10em;
+                    text-align: left;
+                }
+            }
+            .container-row.even {
+                background-color: #e0e0e0;
             }
         }
     }

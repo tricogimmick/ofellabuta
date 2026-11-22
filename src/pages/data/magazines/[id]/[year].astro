@@ -85,7 +85,8 @@ function getIssues(db: sqlite3.Database, seriesId: number, year?: number) {
     });
 }
 
-const { id, year } = Astro.params;
+const id = Number(Astro.params.id);
+const year = Number(Astro.params.year);
 const { series } = Astro.props;
 
 const dbPath = import.meta.env.BIBLIODB_PATH;

@@ -77,7 +77,7 @@ function getIssues(db: sqlite3.Database, seriesId: number) {
     });
 }
 
-const { id } = Astro.params;
+const id = Number(Astro.params.id);
 const { series } = Astro.props;
 
 const dbPath = import.meta.env.BIBLIODB_PATH;

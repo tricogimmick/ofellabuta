@@ -93,7 +93,7 @@ function getRelatedLinks(db: sqlite3.Database, printId: number) {
 }
 
 
-const { id } = Astro.params;
+const id = Number(Astro.params.id);
 const { movie } = Astro.props;
 
 const dbPath = import.meta.env.BIBLIODB_PATH;

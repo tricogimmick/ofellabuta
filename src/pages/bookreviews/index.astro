@@ -48,6 +48,9 @@ const columnSize = reviews.reduce((max, review) => Math.max(max, review.terms.le
                             <td>
                                 { review.terms.includes(2026) ? <a href={`/bookreviews/${review.id}/2026`}>2026年</a> : null }
                             </td>
+                            <td>
+                                { review.terms.includes(2027) ? <a href={`/bookreviews/${review.id}/2027`}>2027年</a> : null }
+                            </td>
                         </tr>
                     ))  
                 }    

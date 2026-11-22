@@ -136,13 +136,15 @@ const { person } = Astro.props;
 
 const dbPath = import.meta.env.BIBLIODB_PATH;
 const db = new sqlite3.Database(dbPath);
-const works = await getWorks(db, id);
-const prints = await getPrints(db, id);
-const movies = await getMovies(db, id);
-const links = await getRelatedLinks(db, id);
+const works = await getWorks(db, Number(id));
+const prints = await getPrints(db, Number(id));
+const movies = await getMovies(db, Number(id));
+const links = await getRelatedLinks(db, Number(id));
 
 const portraitImage = links.find(x => x.linkType === 'IMG' && x.alt === '肖像');
 const relatedLinks = links.filter(x => x.linkType === 'LINK');
+const initialTab = works.length > 0 ? 'works' : prints.length > 0 ? 'prints' : 'movies';
+const tabStyle = (tab: string) => tab === initialTab ? '' : 'display: none;';
 
 ---
 <BaseLayout pageTitle={person.name}>
@@ -175,12 +177,12 @@ const relatedLinks = links.filter(x => x.linkType === 'LINK');
             null
         }
         <div class="tab">
-            { works?.length > 0 ? <button id="works-tab" class="selected">作品リスト</button> : null }
-            { prints?.length > 0 ? <button id="prints-tab">書籍リスト</button> : null }
-            { movies?.length > 0 ? <button id="movies-tab">映画リスト</button> : null }
+            { works?.length > 0 ? <button id="works-tab" class:list={{ selected: initialTab === 'works' }}>作品リスト</button> : null }
+            { prints?.length > 0 ? <button id="prints-tab" class:list={{ selected: initialTab === 'prints' }}>書籍リスト</button> : null }
+            { movies?.length > 0 ? <button id="movies-tab" class:list={{ selected: initialTab === 'movies' }}>映画リスト</button> : null }
             <span>&nbsp;</span>
         </div>
-        <div class="container works">
+        <div class="container works" style={tabStyle('works')}>
             <div class="container-header">
                 <div class="container-row">
                     <div class="container-cell">No</div>
@@ -202,7 +204,7 @@ const relatedLinks = links.filter(x => x.linkType === 'LINK');
                 }
             </div>
         </div>
-        <div class="container prints" style="display: none;">
+        <div class="container prints" style={tabStyle('prints')}>
             <div class="container-header">
                 <div class="container-row">
                     <div class="container-cell">No</div>
@@ -220,6 +222,7 @@ const relatedLinks = links.filter(x => x.linkType === 'LINK');
                             <div class="container-cell">
                                 <a href={`/data/prints/${print.id}`}>{ (print.seriesTitle ?? "") != "" ? `${print.seriesTitle} ${print.title}` : print.title }</a>
                             </div>
+                            <div class="container-cell">{print.publisher}</div>
                             <div class="container-cell">{print.publicationDate}</div>
                             <div class="container-cell">{print.printType}</div>
                         </div>
@@ -227,7 +230,7 @@ const relatedLinks = links.filter(x => x.linkType === 'LINK');
                 }
             </div>
         </div>
-        <div class="container movies" style="display: none;">
+        <div class="container movies" style={tabStyle('movies')}>
             <div class="container-header">
                 <div class="container-row">
                     <div class="container-cell">No</div>
@@ -369,6 +372,7 @@ const relatedLinks = links.filter(x => x.linkType === 'LINK');
             > span {
                 display: block;
                 flex-grow: 1;
+                border-left: 1px solid gray;
                 border-bottom: 1px solid gray;
             }
         }

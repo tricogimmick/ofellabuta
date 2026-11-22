@@ -10,8 +10,8 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/ts-plugin": "^1.10.10",
-    "astro": "^7.1.0",
+    "@astrojs/ts-plugin": "^1.11.0",
+    "astro": "^7.4.13",
     "marked": "^15.0.6",
     "sqlite3": "^5.1.7"
   }

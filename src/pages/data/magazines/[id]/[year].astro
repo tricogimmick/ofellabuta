@@ -43,6 +43,10 @@ export async function getStaticPaths() {
                         ...rows.filter(x => magazineData.find(m => m.id === x.id) != null).map(x => ({
                             params: { id: String(x.id ?? 0) , year: "2026" },
                             props: { series: x }
+                        })),
+                        ...rows.filter(x => magazineData.find(m => m.id === x.id) != null).map(x => ({
+                            params: { id: String(x.id ?? 0) , year: "2027" },
+                            props: { series: x }
                         }))
                     ]);
                 }
@@ -110,7 +114,7 @@ const descHtml = series.description != null && series.description != "" ? marked
   }
   <h4>
     発行年：
-    {[2025, 2026].map((y) => (
+    {[2025, 2026, 2027].map((y) => (
         y == year ? 
         <span class="current-year">{y}年</span> :
         <span><a href={`/data/magazines/${id}/${y}`}>{y}年</a></span>
